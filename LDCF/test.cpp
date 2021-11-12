@@ -9,7 +9,7 @@ using namespace std;
 typedef long long ll;
 const int N = 23;
 
-class VqfEvaluation : public EvaluationBase {
+class LdcfEvaluation : public EvaluationBase {
 	virtual void init() {
 		F = new LogarithmicDynamicCuckooFilter(1<< N, 0.01);
 	}
