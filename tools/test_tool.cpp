@@ -8,6 +8,13 @@ typedef long long ll;
 int main(int argc, char* argv[]) {
 	vector<string> folders = {"Omnipotent", "VacuumFilter", "VQF", "LDCF"};
 	string options = "";
+	{
+		string cmd = "";
+		cmd += "cd ..";
+		cmd += " && ";
+		cmd += "mkdir log";
+		system(cmd.c_str());
+	}
 	for (auto f : folders) {	
 		string cmd = "";
 		cmd += "cd ..";
