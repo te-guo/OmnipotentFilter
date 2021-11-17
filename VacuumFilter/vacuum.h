@@ -6,8 +6,8 @@
 #include <cstdio>
 #include <cstring>
 #include <random>
-#include <cassert>
 #include "hashing.h"
+using namespace std;
 
 #define memcle(a) memset(a, 0, sizeof(a))
 #define sqr(a) ((a) * (a))
@@ -150,14 +150,14 @@ void SemiSortCuckooFilter<fp_t, fp_len>::init(int max_item, int _m, int _step) {
         len[3] = big_seg - 1;
     } else {
         big_seg = 0;
-        big_seg = std::max(big_seg, proper_alt_range(_n, 0, len));
+        big_seg = max(big_seg, proper_alt_range(_n, 0, len));
         int new_n = ROUNDUP(_n, big_seg);
         _n = new_n;
 
         big_seg--;
         len[0] = big_seg;
         for (int i = 1; i < 4; i++) len[i] = proper_alt_range(_n, i, len) - 1;
-        len[0] = std::max(len[0], 1024);
+        len[0] = max(len[0], 1024);
         len[3] = (len[3] + 1) * 2 - 1;
     }
 
@@ -276,7 +276,7 @@ void SemiSortCuckooFilter<fp_t, fp_len>::get_bucket(int pos, fp_t* store) {
 
 template <typename fp_t, int fp_len>
 inline void SemiSortCuckooFilter<fp_t, fp_len>::sort_pair(fp_t& a, fp_t& b) {
-    if ((a) < (b)) std::swap(a, b);
+    if ((a) < (b)) swap(a, b);
 }
 
 template <typename fp_t, int fp_len>
@@ -405,7 +405,6 @@ bool SemiSortCuckooFilter<fp_t, fp_len>::lookup(char* ele) {
     // if (ok1 == 3) return false;
 
     int pos2 = alternate(pos1, fp);
-    assert(pos1 == alternate(pos2, fp));
     int ok2 = lookup_in_bucket(pos2, fp);
 
     return ok2 == 1;
