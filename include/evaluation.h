@@ -21,6 +21,11 @@ struct Operation {
 	int type;   // 0 -- insert   1 -- query
 	Operation(int _type, char *_key, int _ans) : key(_key), ans(_ans), type(_type) {}
 };
+struct Status {
+	int id;
+	int fp;
+	double t;
+};
 
 class EvaluationBase {
 public:
@@ -61,12 +66,11 @@ public:
 		int insert_tot = insert_num, query_tot = query_num;
 		assert(insert_tot > 100);
 
-		int false_positive = 0;
+		int false_positive = 0, point_false_positive = 0;
 		int false_negative = 0;
-		bool false_negative_before_failure = false;
 		int fail_num = 0;
 		vector<int> points;
-		vector<pair<int,pair<double,int> > > results;
+		vector<Status> results;
 		int it = 0;
 		for (int i=1; i<=99; i++) points.push_back((insert_tot+query_tot)*i/100-1);
 		points.push_back(int(data.size())-1);
@@ -82,44 +86,39 @@ public:
 				}
 			} else {
 				bool ok = query(data[i].key) == data[i].ans;
-				if (!ok && data[i].ans==false) false_positive++;
-				if (!ok && data[i].ans==true){
-					false_negative++;
-					if(fail_num == 0)
-						false_negative_before_failure = true;
-				}
+				if (!ok)
+					if(data[i].ans==false) point_false_positive++;
+					else false_negative++;
 			}
-			if (is_point) {
-				results.push_back(make_pair(i, make_pair(get_time(), fail_num)));
+			if (is_point||fail_num>=1) {
+				results.push_back((Status){i, point_false_positive, get_time()});
 				if (it<points.size() && i==points[it]) it++;
+				false_positive += point_false_positive;
+				point_false_positive = 0;
 				debug();
+				if (fail_num>=1) break;
 			}
-			if (fail_num>=10) break;
 		}
 
 		it = insert_num = query_num = 0;
-		int last_i = 0; 
+		int last_i = 0, last_query_num = 0; 
 		double last_time = 0;
 		for (int i=0; i<data.size(); i++) {
 			if (data[i].type==0) insert_num++; else query_num++;
-			if (it<results.size() && i==results[it].first) {
-				auto t = results[it].second;
-				printf("@Load factor=%.4lf : Throughput=%.2lf, AVG throughput=%.2lf, #Insertion fails=%d\n",
-						 1.0*insert_num/insert_tot, (i-last_i)/(t.first-last_time), i/t.first, t.second);
+			if (it<results.size() && i==results[it].id) {
+				printf("@Load factor=%.4lf : Throughput=%.2lf, AVG throughput=%.2lf, current FPR=%.8lf,\n",
+						 1.0*insert_num/insert_tot, (i-last_i)/(results[it].t-last_time), i/results[it].t, query_num==last_query_num?-1:(double)results[it].fp/(query_num - last_query_num));
 				last_i = i;
-				last_time = t.first;
+				last_time = results[it].t;
+				last_query_num = query_num;
 				it++;
 			}
 			if (it==results.size()) break;
 		}
 		if (query_num>0) {
 			printf("fpr = %.8lf\n", 1.0*false_positive/query_num);
-			if (false_negative>0) {
-				if(false_negative_before_failure)
-					printf("!!!!!!!!!!!!!!! false negative = %d\n", false_negative);
-				else
-					printf("false negative (only after insertion failure) = %d\n", false_negative);
-			}
+			if (false_negative>0)
+				printf("!!!!!!!!!!!!!!! false negative = %d\n", false_negative);
 		}
 	}
 
