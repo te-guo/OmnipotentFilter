@@ -2,36 +2,34 @@
 #include<cstdio>
 #include<chrono>
 #include<vector>
-#include "vqf_filter.h"
-#include "hashing.h"
+#include "omnipotent.h"
 #include "evaluation.h"
 using namespace std;
 typedef long long ll;
-const int N = 23;
+const int N = 19;
 
-class VqfEvaluation : public EvaluationBase {
+class OmnipotentEvaluation : public EvaluationBase {
+	
+StaticOmnipotentFilter<1<<N, 8, uint16_t> F;
 	virtual void init() {
-		F = vqf_init(1 << N);
+
 	}
 	virtual bool insert(char *key) {
-		return vqf_insert(F, hash_func1_32bit(key));
+		return F.insert_key(key);
 	}
 	virtual bool query(char *key) {
-		return vqf_is_present(F, hash_func1_32bit(key));
-	}
-	virtual bool remove(char *key) {
-		return vqf_remove(F, hash_func1_32bit(key));
+		return F.query_key(key);
 	}
 	virtual void debug() {
+//		F.show_statistic();
 	}
-	vqf_filter* F;
 } E;
 int main(int argc, char* argv[]) {
 	
-	int n = (1<<N);
+	int n = (1<<N)*8*3;
 	auto data = gen_random_data(n);
 	//for (int i=0; i<100; i++) cout<<data[i].key<<endl;
 	E.data = data;
-	E.evaluation("VQF");
+	E.evaluation("Omnipotent");
 	return 0;
 }

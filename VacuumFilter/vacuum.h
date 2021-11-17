@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <cstring>
 #include <random>
+#include <cassert>
 #include "hashing.h"
 using namespace std;
 
@@ -133,12 +134,14 @@ int proper_alt_range(int M, int i, int* len) {
     return alt_range;
 }
 
+//+++ We need to make the 'max_item' to be the number of buckets
 template <typename fp_t, int fp_len>
 void SemiSortCuckooFilter<fp_t, fp_len>::init(int max_item, int _m, int _step) {
-    int _n = (max_item / 0.96 / 4);
+//    int _n = (max_item / 0.96 / 4);
+    int _n = (max_item / 4);
 
 
-    if (_n < 10000) {
+    if (false && _n < 10000) {
         if (_n < 256)
             big_seg = (upperpower2(_n));
         else
@@ -152,8 +155,10 @@ void SemiSortCuckooFilter<fp_t, fp_len>::init(int max_item, int _m, int _step) {
         big_seg = 0;
         big_seg = max(big_seg, proper_alt_range(_n, 0, len));
         int new_n = ROUNDUP(_n, big_seg);
+        cerr << "original big_seg = " << big_seg << " new_n = " << new_n << endl;
+        assert(_n == new_n);
         _n = new_n;
-
+        
         big_seg--;
         len[0] = big_seg;
         for (int i = 1; i < 4; i++) len[i] = proper_alt_range(_n, i, len) - 1;
@@ -161,6 +166,7 @@ void SemiSortCuckooFilter<fp_t, fp_len>::init(int max_item, int _m, int _step) {
         len[3] = (len[3] + 1) * 2 - 1;
     }
 
+    printf("Vacuum filter : %d buckets, %d slots per bucket, total slots = %d\n", _n, _m, _n*_m);
     this->n = _n;
     this->m = _m;
     this->max_kick_steps = _step;

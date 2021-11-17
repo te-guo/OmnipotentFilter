@@ -1,4 +1,4 @@
-CFLAGS = -g -Wall -std=c++14 -mpopcnt
+CFLAGS = -g -Wall -std=c++17 -mpopcnt
 SRC = ./*.cpp ../include/*.cpp
 
 all: test

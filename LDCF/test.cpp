@@ -32,6 +32,6 @@ int main(int argc, char* argv[]) {
 	auto data = gen_random_data(n);
 	//for (int i=0; i<100; i++) cout<<data[i].key<<endl;
 	E.data = data;
-	E.evaluation();
+	E.evaluation("LDCF");
 	return 0;
 }

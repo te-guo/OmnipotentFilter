@@ -5,6 +5,8 @@
 #include<cassert>
 #include<utility>
 #include<sstream>
+#include<map>
+//#include <filesystem>
 using namespace std;
 auto _time_stamp = chrono::high_resolution_clock::now();
 void set_time_stamp() {
@@ -19,7 +21,8 @@ struct Operation {
 	char *key;
 	int ans;
 	int type;   // 0 -- insert   1 -- query
-	Operation(int _type, char *_key, int _ans) : key(_key), ans(_ans), type(_type) {}
+	bool checkpoint;
+	Operation(int _type, char *_key, int _ans, bool _checkpoint) : key(_key), ans(_ans), type(_type), checkpoint(_checkpoint) {}
 };
 struct Status {
 	int id;
@@ -41,85 +44,134 @@ public:
 	virtual void debug() {
 		assert(false);
 	}
+	string log_dir, log_path;
+	void open_log() {
+		/*
+		std::filesystem::path path = log_dir;
+		if (!std::filesystem::exists(path)) {
+			cerr << "Creating directories " << path << endl;
+			std::filesystem::create_directories(path);
+		}*/
+		cerr<< "Saving log to " << log_path << endl;
+		assert(freopen(log_path.c_str(), "a", stdout));
+	}
 
 	vector<Operation> data;
-	void evaluation() {
-		init();
-		int insert_num = 0, query_num = 0, query_ans_cnt[2] = {};
+	vector<Status> results;
+	int insert_tot = 0, query_tot = 0, query_ans_cnt[2] = {};
+	void _precompute_data() {
 		for (auto o : data) {
 			if (o.type==0) {
-				insert_num++;
+				insert_tot++;
 			} else {
 				assert(o.type==1);
-				query_num++;
+				query_tot++;
 				assert(o.ans==0||o.ans==1);
 				query_ans_cnt[o.ans]++;
 			}
 		}
 		puts("======================================================");
-		printf("Evaluating with data: #insert=%d, #query=%d", insert_num, query_num);
-		if (query_num>0) {
-			printf(", #yes/#query=%.3lf", 1.0*query_ans_cnt[0]/query_num);
+		printf("Evaluating with data: #insert=%d, #query=%d", insert_tot, query_tot);
+		if (query_tot>0) {
+			printf(", #yes/#query=%.3lf", 1.0*query_ans_cnt[0]/query_tot);
 		}
 		puts("");
-
-		int insert_tot = insert_num, query_tot = query_num;
+	}
+	void _evaluation(string eval_name) {
 		assert(insert_tot > 100);
 
 		int false_positive = 0, point_false_positive = 0;
 		int false_negative = 0;
 		int fail_num = 0;
-		vector<int> points;
-		vector<Status> results;
-		int it = 0;
-		for (int i=1; i<=99; i++) points.push_back((insert_tot+query_tot)*i/100-1);
-		points.push_back(int(data.size())-1);
 
 		set_time_stamp();
 		for (int i=0; i<data.size(); i++) {
-			bool is_point = it<points.size() && i==points[it];
 			if (data[i].type==0) {
 				bool ok = insert(data[i].key);
-				if (!ok) {
-					fail_num++;
-					is_point = true;
-				}
+				if (!ok)
+					fail_num++, data[i].checkpoint = true;
 			} else {
 				bool ok = query(data[i].key) == data[i].ans;
 				if (!ok)
 					if(data[i].ans==false) point_false_positive++;
 					else false_negative++;
 			}
-			if (is_point||fail_num>=1) {
+			if (data[i].checkpoint) {
 				results.push_back((Status){i, point_false_positive, get_time()});
-				if (it<points.size() && i==points[it]) it++;
 				false_positive += point_false_positive;
 				point_false_positive = 0;
 				debug();
 				if (fail_num>=1) break;
 			}
 		}
-
-		it = insert_num = query_num = 0;
-		int last_i = 0, last_query_num = 0; 
+		if (query_tot>0 && false_negative>0) {
+			cout << "[!!!WARNING!!!] False negative = " << false_negative << endl;
+			cerr << "[!!!WARNING!!!] False negative = " << false_negative << endl;  
+		}
+	}
+	void _print_results() {
+		int it = 0;
+		int insert_num = 0, query_num = 0;
+		int last_i = 0, last_query_num = 0, last_insert_num = 0; 
 		double last_time = 0;
+		
+		map<string, double> tot_t;
+		map<string, int> tot_num;
+		
 		for (int i=0; i<data.size(); i++) {
 			if (data[i].type==0) insert_num++; else query_num++;
 			if (it<results.size() && i==results[it].id) {
-				printf("@Load factor=%.4lf : Throughput=%.2lf, AVG throughput=%.2lf, current FPR=%.8lf,\n",
-						 1.0*insert_num/insert_tot, (i-last_i)/(results[it].t-last_time), i/results[it].t, query_num==last_query_num?-1:(double)results[it].fp/(query_num - last_query_num));
+				string type = query_num == last_query_num ? "Insert" : (insert_num == last_insert_num ? "Query" : "Mixed");
+				printf("%s ", type.c_str());
+
+				int cur_num = i-last_i;
+				double cur_t = results[it].t-last_time;
+				double cur_tp = cur_num / cur_t;
+				double lf = 1.0*insert_num/insert_tot;
+				tot_t[type] += cur_t;
+				tot_num[type] += cur_num;
+				double avg_tp = tot_num[type] / tot_t[type];
+
+				if(query_num == last_query_num)
+					printf("@Load factor=%.4lf : Throughput = %.2lf,  AVG throughput = %.2lf\n", lf, cur_tp, avg_tp);
+				else
+					printf("@Load factor=%.4lf : Throughput = %.2lf,  AVG throughput = %.2lf,  current FPR = %.8lf\n",
+							lf, cur_tp, avg_tp, (double)results[it].fp/(query_num - last_query_num));
+				
 				last_i = i;
 				last_time = results[it].t;
+				last_insert_num = insert_num;
 				last_query_num = query_num;
 				it++;
 			}
 			if (it==results.size()) break;
 		}
-		if (query_num>0) {
-			printf("fpr = %.8lf\n", 1.0*false_positive/query_num);
-			if (false_negative>0)
-				printf("!!!!!!!!!!!!!!! false negative = %d\n", false_negative);
+		
+	}
+	void evaluation(string filter_name, string eval_name = "", string path="../log") {
+		time_t time_now = time(0);
+		string time_str = (ctime(&time_now));
+		for (int i=0; i<time_str.size(); i++) {
+			if (time_str[i]==' ')
+				time_str[i] = '+';
+			if (time_str[i]==':')
+				time_str[i] = '_';
 		}
+		while (time_str.back()<32) time_str.pop_back();
+//		log_dir = path + "/" + filter_name + "/";
+		log_dir = path + "/";		
+//		log_path = log_dir + eval_name + time_str + ".txt";
+		log_path = log_dir + eval_name + filter_name + " " + time_str + ".txt";
+		open_log();
+		
+		cout << "Evaluating [" << filter_name << "] in evaluation [" << eval_name << "]" << endl;
+		cerr << "Evaluating [" << filter_name << "] in evaluation [" << eval_name << "]" << endl;
+		
+		
+		init();
+		_precompute_data();
+		_evaluation(eval_name);
+		_print_results();
 	}
 
 	~EvaluationBase() {
@@ -146,15 +198,20 @@ vector<Operation> gen_random_data(int n, bool no_query=false) {
 		a[i] = x;
 		x = 1ll*x*3%m;
 	}
-	for (int i=0; i<n; i++) {
-		ret.push_back(Operation(0, gen_string_by_int(a[i]), 0));
-		if (!no_query) {
-			if (rand()&1) {
-				ret.push_back(Operation(1, gen_string_by_int(a[rand()%(i+1)]), true));
-			} else {
-				ret.push_back(Operation(1, gen_string_by_int(a[i+1+rand()%(n-i)]), false));	
+	int seg = 20;
+	for(int i=0; i<seg; i++){
+		int j=(long long)n*i/seg, k=(long long)n*(i+1)/seg;
+		for(int l=j; l<k; ++l)
+			ret.push_back(Operation(0, gen_string_by_int(a[l]), 0, l==k-1));
+		if(!no_query) {
+			for(int l=j;l<k;++l) {
+				if(rand()&1)
+					ret.push_back(Operation(1, gen_string_by_int(a[rand()%k]), true, l==k-1));
+				else
+					ret.push_back(Operation(1, gen_string_by_int(a[k+rand()%(n-k+1)]), false, l==k-1));
 			}
 		}
 	}
+
 	return ret;
 }
