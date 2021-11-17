@@ -83,6 +83,10 @@ public:
 		int false_positive = 0, point_false_positive = 0;
 		int false_negative = 0;
 		int fail_num = 0;
+<<<<<<< HEAD
+=======
+		vector<Status> results;
+>>>>>>> 8fadd529c05a9805060bdaf212b5fe6436daa5ae
 
 		set_time_stamp();
 		for (int i=0; i<data.size(); i++) {
@@ -104,6 +108,7 @@ public:
 				if (fail_num>=1) break;
 			}
 		}
+<<<<<<< HEAD
 		if (query_tot>0 && false_negative>0) {
 			cout << "[!!!WARNING!!!] False negative = " << false_negative << endl;
 			cerr << "[!!!WARNING!!!] False negative = " << false_negative << endl;  
@@ -112,6 +117,11 @@ public:
 	void _print_results() {
 		int it = 0;
 		int insert_num = 0, query_num = 0;
+=======
+
+		int it = 0;
+		insert_num = query_num = 0;
+>>>>>>> 8fadd529c05a9805060bdaf212b5fe6436daa5ae
 		int last_i = 0, last_query_num = 0, last_insert_num = 0; 
 		double last_time = 0;
 		
@@ -121,6 +131,7 @@ public:
 		for (int i=0; i<data.size(); i++) {
 			if (data[i].type==0) insert_num++; else query_num++;
 			if (it<results.size() && i==results[it].id) {
+<<<<<<< HEAD
 				string type = query_num == last_query_num ? "Insert" : (insert_num == last_insert_num ? "Query" : "Mixed");
 				printf("%s ", type.c_str());
 
@@ -138,6 +149,20 @@ public:
 					printf("@Load factor=%.4lf : Throughput = %.2lf,  AVG throughput = %.2lf,  current FPR = %.8lf\n",
 							lf, cur_tp, avg_tp, (double)results[it].fp/(query_num - last_query_num));
 				
+=======
+				if(query_num == last_query_num)
+					printf("Insert ");
+				else if(insert_num == last_insert_num)
+					printf("Query  ");
+				else
+					printf("Mixed  ");
+				if(query_num == last_query_num)
+					printf("@Load factor=%.4lf : Throughput = %.2lf,  AVG throughput = %.2lf\n",
+							1.0*insert_num/insert_tot, (i-last_i)/(results[it].t-last_time), i/results[it].t);
+				else
+					printf("@Load factor=%.4lf : Throughput = %.2lf,  AVG throughput = %.2lf,  current FPR = %.8lf\n",
+							1.0*insert_num/insert_tot, (i-last_i)/(results[it].t-last_time), i/results[it].t, (double)results[it].fp/(query_num - last_query_num));
+>>>>>>> 8fadd529c05a9805060bdaf212b5fe6436daa5ae
 				last_i = i;
 				last_time = results[it].t;
 				last_insert_num = insert_num;
@@ -201,6 +226,7 @@ vector<Operation> gen_random_data(int n, bool no_query=false) {
 	int seg = 20;
 	for(int i=0; i<seg; i++){
 		int j=(long long)n*i/seg, k=(long long)n*(i+1)/seg;
+<<<<<<< HEAD
 		for(int l=j; l<k; ++l)
 			ret.push_back(Operation(0, gen_string_by_int(a[l]), 0, l==k-1));
 		if(!no_query) {
@@ -211,6 +237,15 @@ vector<Operation> gen_random_data(int n, bool no_query=false) {
 					ret.push_back(Operation(1, gen_string_by_int(a[k+rand()%(n-k+1)]), false, l==k-1));
 			}
 		}
+=======
+		for(int l=j;l<k;++l)
+			ret.push_back(Operation(0, gen_string_by_int(a[l]), 0, l==k-1));
+		if(!no_query) for(int l=j;l<k;++l)
+			if(rand()&1)
+				ret.push_back(Operation(1, gen_string_by_int(a[rand()%k]), true, l==k-1));
+			else
+				ret.push_back(Operation(1, gen_string_by_int(a[k+rand()%(n-k+1)]), false, l==k-1));
+>>>>>>> 8fadd529c05a9805060bdaf212b5fe6436daa5ae
 	}
 
 	return ret;
