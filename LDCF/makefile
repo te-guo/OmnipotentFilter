@@ -1,5 +1,5 @@
 CFLAGS = -g -Wall -std=c++14 -mpopcnt
-SRC = ./*.cpp ../include/*.cpp
+SRC = ./*.cpp ../include/* ./*.h
 
 all: test
 

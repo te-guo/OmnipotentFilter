@@ -19,7 +19,8 @@ struct Operation {
 	char *key;
 	int ans;
 	int type;   // 0 -- insert   1 -- query
-	Operation(int _type, char *_key, int _ans) : key(_key), ans(_ans), type(_type) {}
+	bool checkpoint;
+	Operation(int _type, char *_key, int _ans, bool _checkpoint) : key(_key), ans(_ans), type(_type), checkpoint(_checkpoint) {}
 };
 struct Status {
 	int id;
@@ -69,30 +70,22 @@ public:
 		int false_positive = 0, point_false_positive = 0;
 		int false_negative = 0;
 		int fail_num = 0;
-		vector<int> points;
 		vector<Status> results;
-		int it = 0;
-		for (int i=1; i<=99; i++) points.push_back((insert_tot+query_tot)*i/100-1);
-		points.push_back(int(data.size())-1);
 
 		set_time_stamp();
 		for (int i=0; i<data.size(); i++) {
-			bool is_point = it<points.size() && i==points[it];
 			if (data[i].type==0) {
 				bool ok = insert(data[i].key);
-				if (!ok) {
-					fail_num++;
-					is_point = true;
-				}
+				if (!ok)
+					fail_num++, data[i].checkpoint = true;
 			} else {
 				bool ok = query(data[i].key) == data[i].ans;
 				if (!ok)
 					if(data[i].ans==false) point_false_positive++;
 					else false_negative++;
 			}
-			if (is_point||fail_num>=1) {
+			if (data[i].checkpoint) {
 				results.push_back((Status){i, point_false_positive, get_time()});
-				if (it<points.size() && i==points[it]) it++;
 				false_positive += point_false_positive;
 				point_false_positive = 0;
 				debug();
@@ -100,16 +93,28 @@ public:
 			}
 		}
 
-		it = insert_num = query_num = 0;
-		int last_i = 0, last_query_num = 0; 
+		int it = 0;
+		insert_num = query_num = 0;
+		int last_i = 0, last_query_num = 0, last_insert_num = 0; 
 		double last_time = 0;
 		for (int i=0; i<data.size(); i++) {
 			if (data[i].type==0) insert_num++; else query_num++;
 			if (it<results.size() && i==results[it].id) {
-				printf("@Load factor=%.4lf : Throughput=%.2lf, AVG throughput=%.2lf, current FPR=%.8lf,\n",
-						 1.0*insert_num/insert_tot, (i-last_i)/(results[it].t-last_time), i/results[it].t, query_num==last_query_num?-1:(double)results[it].fp/(query_num - last_query_num));
+				if(query_num == last_query_num)
+					printf("Insert ");
+				else if(insert_num == last_insert_num)
+					printf("Query  ");
+				else
+					printf("Mixed  ");
+				if(query_num == last_query_num)
+					printf("@Load factor=%.4lf : Throughput = %.2lf,  AVG throughput = %.2lf\n",
+							1.0*insert_num/insert_tot, (i-last_i)/(results[it].t-last_time), i/results[it].t);
+				else
+					printf("@Load factor=%.4lf : Throughput = %.2lf,  AVG throughput = %.2lf,  current FPR = %.8lf\n",
+							1.0*insert_num/insert_tot, (i-last_i)/(results[it].t-last_time), i/results[it].t, (double)results[it].fp/(query_num - last_query_num));
 				last_i = i;
 				last_time = results[it].t;
+				last_insert_num = insert_num;
 				last_query_num = query_num;
 				it++;
 			}
@@ -146,15 +151,16 @@ vector<Operation> gen_random_data(int n, bool no_query=false) {
 		a[i] = x;
 		x = 1ll*x*3%m;
 	}
-	for (int i=0; i<n; i++) {
-		ret.push_back(Operation(0, gen_string_by_int(a[i]), 0));
-		if (!no_query) {
-			if (rand()&1) {
-				ret.push_back(Operation(1, gen_string_by_int(a[rand()%(i+1)]), true));
-			} else {
-				ret.push_back(Operation(1, gen_string_by_int(a[i+1+rand()%(n-i)]), false));	
-			}
-		}
+	int seg = 20;
+	for(int i=0; i<seg; i++){
+		int j=(long long)n*i/seg, k=(long long)n*(i+1)/seg;
+		for(int l=j;l<k;++l)
+			ret.push_back(Operation(0, gen_string_by_int(a[l]), 0, l==k-1));
+		if(!no_query) for(int l=j;l<k;++l)
+			if(rand()&1)
+				ret.push_back(Operation(1, gen_string_by_int(a[rand()%k]), true, l==k-1));
+			else
+				ret.push_back(Operation(1, gen_string_by_int(a[k+rand()%(n-k+1)]), false, l==k-1));
 	}
 	return ret;
 }
