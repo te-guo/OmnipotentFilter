@@ -27,9 +27,7 @@ StaticOmnipotentFilter<1<<N, 8, uint16_t> F;
 int main(int argc, char* argv[]) {
 	
 	int n = (1<<N)*8*3;
-	auto data = gen_random_data(n);
-	//for (int i=0; i<100; i++) cout<<data[i].key<<endl;
-	E.data = data;
+	E.gen_random_data(n);
 	E.evaluation("Omnipotent");
 	return 0;
 }

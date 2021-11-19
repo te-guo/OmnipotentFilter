@@ -29,9 +29,7 @@ class LdcfEvaluation : public EvaluationBase {
 int main(int argc, char* argv[]) {
 	
 	int n = (1<<N);
-	auto data = gen_random_data(n);
-	//for (int i=0; i<100; i++) cout<<data[i].key<<endl;
-	E.data = data;
+	E.gen_random_data(n);
 	E.evaluation("LDCF");
 	return 0;
 }

@@ -179,6 +179,8 @@ public:
 			delete o.key;
 		}
 	}
+
+	void gen_random_data(int n, bool no_query=false);
 };
 
 char* gen_string_by_int(long long x) {
@@ -190,8 +192,8 @@ char* gen_string_by_int(long long x) {
 	s[18] = 0;
 	return s;
 }
-vector<Operation> gen_random_data(int n, bool no_query=false) {
-	vector<Operation> ret;
+void EvaluationBase::gen_random_data(int n, bool no_query) {
+	data.clear();
 	long long *a = new long long[n+1];
 	long long m = 1000000000000000003ll, x = m-1;
 	for (int i=0; i<=n; i++) {
@@ -202,16 +204,14 @@ vector<Operation> gen_random_data(int n, bool no_query=false) {
 	for(int i=0; i<seg; i++){
 		int j=(long long)n*i/seg, k=(long long)n*(i+1)/seg;
 		for(int l=j; l<k; ++l)
-			ret.push_back(Operation(0, gen_string_by_int(a[l]), 0, l==k-1));
+			data.push_back(Operation(0, gen_string_by_int(a[l]), 0, l==k-1));
 		if(!no_query) {
 			for(int l=j;l<k;++l) {
 				if(rand()&1)
-					ret.push_back(Operation(1, gen_string_by_int(a[rand()%k]), true, l==k-1));
+					data.push_back(Operation(1, gen_string_by_int(a[rand()%k]), true, l==k-1));
 				else
-					ret.push_back(Operation(1, gen_string_by_int(a[k+rand()%(n-k+1)]), false, l==k-1));
+					data.push_back(Operation(1, gen_string_by_int(a[k+rand()%(n-k+1)]), false, l==k-1));
 			}
 		}
 	}
-
-	return ret;
 }
