@@ -71,11 +71,12 @@ public:
 			}
 		}
 		puts("======================================================");
-		printf("Evaluating with data: #insert=%d, #query=%d", insert_tot, query_tot);
+		printf("Evaluating with data: #insert = %d, #query = %d", insert_tot, query_tot);
 		if (query_tot>0) {
-			printf(", #yes/#query=%.3lf", 1.0*query_ans_cnt[0]/query_tot);
+			printf(", #yes/#query = %.3lf", 1.0*query_ans_cnt[0]/query_tot);
 		}
 		puts("");
+		puts("Procedure:");
 	}
 	void _evaluation(string eval_name) {
 		assert(insert_tot > 100);
@@ -133,9 +134,10 @@ public:
 				double avg_tp = tot_num[type] / tot_t[type];
 
 				if(query_num == last_query_num)
-					printf("@Load factor=%.4lf : Throughput = %.2lf,  AVG throughput = %.2lf\n", lf, cur_tp, avg_tp);
+					printf("Load_factor = %.4lf,  Throughput = %.2lf,  AVG_throughput = %.2lf\n",
+							lf, cur_tp, avg_tp);
 				else
-					printf("@Load factor=%.4lf : Throughput = %.2lf,  AVG throughput = %.2lf,  current FPR = %.8lf\n",
+					printf("Load_factor = %.4lf,  Throughput = %.2lf,  AVG_throughput = %.2lf,  FPR = %.8lf\n",
 							lf, cur_tp, avg_tp, (double)results[it].fp/(query_num - last_query_num));
 				
 				last_i = i;
@@ -158,13 +160,11 @@ public:
 				time_str[i] = '_';
 		}
 		while (time_str.back()<32) time_str.pop_back();
-//		log_dir = path + "/" + filter_name + "/";
 		log_dir = path + "/";		
-//		log_path = log_dir + eval_name + time_str + ".txt";
 		log_path = log_dir + eval_name + filter_name + " " + time_str + ".txt";
 		open_log();
 		
-		cout << "Evaluating [" << filter_name << "] in evaluation [" << eval_name << "]" << endl;
+		cout << filter_name << endl;
 		cerr << "Evaluating [" << filter_name << "] in evaluation [" << eval_name << "]" << endl;
 		
 		
