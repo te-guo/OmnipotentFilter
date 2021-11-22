@@ -57,11 +57,12 @@ public:
 		if (no_query) cerr << " no query";
 		cerr << " ... ";
 		data.clear();
-		long long *a = new long long[n+1];
-		long long m = 1000000000000000003ll, x = m-1;
-		for (int i=0; i<=n; i++) {
+		int m = n*1.1;
+		long long *a = new long long[m+1];
+		long long mod = 1000000000000000003ll, x = mod-1;
+		for (int i=0; i<=m; i++) {
 			a[i] = x;
-			x = 1ll*x*3%m;
+			x = 1ll*x*3%mod;
 		}
 		int seg = 20;
 		for(int i=0; i<seg; i++){
@@ -73,7 +74,7 @@ public:
 					if(rand()&1)
 						data.push_back(Operation(1, gen_string_by_int(a[rand()%k]), true, l==k-1));
 					else
-						data.push_back(Operation(1, gen_string_by_int(a[k+rand()%(n-k+1)]), false, l==k-1));
+						data.push_back(Operation(1, gen_string_by_int(a[k+rand()%(m-k+1)]), false, l==k-1));
 				}
 			}
 		}
@@ -107,11 +108,12 @@ class EvaluationBase {
 			}
 		}
 		puts("======================================================");
-		printf("Evaluating with data: #insert=%d, #query=%d", insert_tot, query_tot);
+		printf("Evaluating with data: #insert = %d, #query = %d", insert_tot, query_tot);
 		if (query_tot>0) {
-			printf(", #yes/#query=%.3lf", 1.0*query_ans_cnt[0]/query_tot);
+			printf(", #yes/#query = %.3lf", 1.0*query_ans_cnt[0]/query_tot);
 		}
 		puts("");
+		puts("Procedure:");
 	}
 	void _evaluation(string eval_name) {
 		assert(insert_tot > 100);
@@ -169,9 +171,10 @@ class EvaluationBase {
 				double avg_tp = tot_num[type] / tot_t[type];
 
 				if(query_num == last_query_num)
-					printf("@Load factor=%.4lf : Throughput = %.2lf,  AVG throughput = %.2lf\n", lf, cur_tp, avg_tp);
+					printf("Load_factor = %.4lf,  Throughput = %.2lf,  AVG_throughput = %.2lf\n",
+							lf, cur_tp, avg_tp);
 				else
-					printf("@Load factor=%.4lf : Throughput = %.2lf,  AVG throughput = %.2lf,  current FPR = %.8lf\n",
+					printf("Load_factor = %.4lf,  Throughput = %.2lf,  AVG_throughput = %.2lf,  FPR = %.8lf\n",
 							lf, cur_tp, avg_tp, (double)results[it].fp/(query_num - last_query_num));
 				
 				last_i = i;
@@ -232,7 +235,6 @@ public:
 				time_str[i] = '_';
 		}
 		while (time_str.back()<32) time_str.pop_back();
-//		log_dir = path + "/" + filter_name + "/";
 		log_dir = path + "/";		
 //		log_path = log_dir + eval_name + time_str + ".txt";
 		log_path = log_dir + eval_name + get_filter_name() + " " + time_str + ".txt";
