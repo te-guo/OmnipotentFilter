@@ -240,6 +240,7 @@ public:
 		log_path = log_dir + eval_name + get_filter_name() + " " + time_str + ".txt";
 		open_log();
 		
+		cout << get_filter_name() << endl;
 		cout << "Evaluating [" << get_filter_name() << "] in evaluation [" << eval_name << "]" << endl;
 		cerr << "Evaluating [" << get_filter_name() << "] in evaluation [" << eval_name << "]" << endl;
 		
