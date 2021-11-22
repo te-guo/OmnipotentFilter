@@ -30,6 +30,6 @@ class VqfEvaluation : public EvaluationBase {
 } E;
 int main(int argc, char* argv[]) {
 	E.prepare();
-	E.evaluation("VQF");
+	E.evaluation();
 	return 0;
 }

@@ -29,6 +29,6 @@ class VacuumEvaluation : public EvaluationBase {
 } E;
 int main(int argc, char* argv[]) {
 	E.prepare();
-	E.evaluation("VacuumFilter");
+	E.evaluation();
 	return 0;
 }

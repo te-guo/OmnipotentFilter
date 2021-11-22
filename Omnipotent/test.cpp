@@ -25,6 +25,6 @@ class OmnipotentEvaluation : public EvaluationBase {
 } E;
 int main(int argc, char* argv[]) {
 	E.prepare();
-	E.evaluation("Omnipotent");
+	E.evaluation();
 	return 0;
 }

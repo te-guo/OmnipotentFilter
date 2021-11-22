@@ -16,7 +16,7 @@ endif
 
 CXX = g++ -std=c++11 -fgnu-tm -frename-registers # -march=native
 CC = gcc -std=gnu11 -fgnu-tm -frename-registers # -march=native
-LD= g++ -std=c++11
+LD = g++ -std=c++11
 
 LOC_INCLUDE=../include
 LOC_SRC=src
@@ -35,7 +35,9 @@ LDFLAGS += $(DEBUG) $(PROFILE) $(OPT) -lpthread -lm -litm
 all: $(TARGETS)
 
 # dependencies between programs and .o files
-test:	$(OBJDIR)/test.o $(OBJDIR)/vqf_filter.o $(OBJDIR)/shuffle_matrix_512.o $(OBJDIR)/shuffle_matrix_512_16.o $(OBJDIR)/hashing.o
+test:   $(OBJDIR)/test.o $(OBJDIR)/vqf_filter.o $(OBJDIR)/shuffle_matrix_512.o $(OBJDIR)/shuffle_matrix_512_16.o
+test:   $(patsubst $(LOC_INCLUDE)/%.cpp, $(OBJDIR)/%.o, $(wildcard $(LOC_INCLUDE)/*.cpp))
+
 
 #
 # generic build rules
@@ -44,7 +46,7 @@ test:	$(OBJDIR)/test.o $(OBJDIR)/vqf_filter.o $(OBJDIR)/shuffle_matrix_512.o $(O
 $(TARGETS):
 	$(LD) $^ $(LDFLAGS) -o $@
 
-$(OBJDIR)/%.o: ../include/%.cpp | $(OBJDIR)
+$(OBJDIR)/%.o: ../include/%.cpp ../include/%.h | $(OBJDIR)
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -c -o $@ $<
 
 $(OBJDIR)/%.o: %.cpp | $(OBJDIR)

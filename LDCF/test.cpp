@@ -31,6 +31,6 @@ public:
 } E;
 int main(int argc, char* argv[]) {
 	E.prepare();
-	E.evaluation("LDCF");
+	E.evaluation();
 	return 0;
 }

@@ -1,17 +1,18 @@
+#pragma once
+
 #include "hashing.h"
 #include <cstdio>
 #include <iostream>
 #include <cassert>
 
-#ifndef OMNIPOTENT_HEADER_DEF
-#define OMNIPOTENT_HEADER_DEF
+#define SLOT_N 8
 
 struct OmnipotentConfig {
 	int fp_len;    //fingerprint length (logically)
 	int SMALL_BUCKET_PRIORITY = 0;
 };
 
-template<class FINGERPRINT_T, int SLOT_N>
+template<class FINGERPRINT_T>
 class Bucket {
 	FINGERPRINT_T a[SLOT_N];
 	uint8_t num;   // number of slots
@@ -41,11 +42,12 @@ public:
 typedef uint32_t ui;
 #define USE_STATISTIC
 
-template<int BUCKET_N, int SLOT_N, class FINGERPRINT_T>   //FINGERPRINT_T  must be  uint??_t
+template<class FINGERPRINT_T>   //FINGERPRINT_T  must be  uint??_t
 class StaticOmnipotentFilter {
 private:
 	OmnipotentConfig config;
-	Bucket<FINGERPRINT_T, SLOT_N> b1[BUCKET_N], b2[BUCKET_N<<1];   //b1 -- small    b2 -- large
+	Bucket<FINGERPRINT_T> *b1, *b2;   //b1 -- small    b2 -- large
+	int BUCKET_N;
 public:
 	//statistic info
 #ifdef USE_STATISTIC
@@ -64,7 +66,11 @@ public:
 	}
 #endif
 
-	StaticOmnipotentFilter() {
+	StaticOmnipotentFilter(int max_insert_num) { 
+		BUCKET_N = max_insert_num / 3 / SLOT_N;
+		assert((BUCKET_N & (BUCKET_N-1)) == 0);
+		b1 = new Bucket<FINGERPRINT_T> [BUCKET_N];
+		b2 = new Bucket<FINGERPRINT_T> [BUCKET_N<<1];
 		config.fp_len = sizeof(FINGERPRINT_T)*8;
 		#ifdef USE_STATISTIC
 			b1_cnt[0] = BUCKET_N;
@@ -135,5 +141,3 @@ public:
 		return _query(hash_func1_32bit(key)%BUCKET_N, hash_func2_32bit(key));
 	}
 };
-
-#endif

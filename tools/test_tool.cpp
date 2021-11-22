@@ -8,6 +8,7 @@ typedef long long ll;
 int main(int argc, char* argv[]) {
 	vector<string> folders = {"Omnipotent", "VacuumFilter", "VQF", "LDCF"};
 	string options = "";
+	
 	{
 		string cmd = "";
 		cmd += "cd ..";
@@ -21,8 +22,8 @@ int main(int argc, char* argv[]) {
 		cmd += " && ";
 		cmd += "cd " + f;
 		cmd += " && ";
-		cmd += "make clean";
-		cmd += " && ";
+		//cmd += "make clean";
+		//cmd += " && ";
 		cmd += "make";
 		cmd += " && ";
 		cmd += "./test" + options;
