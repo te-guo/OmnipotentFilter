@@ -6,30 +6,29 @@
 #include "evaluation.h"
 using namespace std;
 typedef long long ll;
-const int N = 23;
-
 class VacuumEvaluation : public EvaluationBase {
-	virtual void init() {
-		F.init(1 << N, 4, 400);
+	string get_filter_name() {
+		return "VacuumFilter";
 	}
-	virtual bool insert(char *key) {
+	void init() {
+		F.init(max_insert_num, 4, 400);
+	}
+	bool insert(char *key) {
 		return F.insert(key);
 	}
-	virtual bool query(char *key) {
+	bool query(char *key) {
 		return F.lookup(key);
 	}
-	virtual bool remove(char *key) {
+	bool remove(char *key) {
 		return F.del(key);
 	}
-	virtual void debug() {
+	void debug() {
 		F.debug_test();
 	}
 	VacuumFilter<uint16_t, 16> F;
 } E;
 int main(int argc, char* argv[]) {
-	
-	int n = (1<<N);
-	E.gen_random_data(n);
+	E.prepare();
 	E.evaluation("VacuumFilter");
 	return 0;
 }

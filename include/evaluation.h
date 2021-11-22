@@ -1,3 +1,5 @@
+#pragma once
+
 #include<iostream>
 #include<cstdio>
 #include<chrono>
@@ -6,16 +8,24 @@
 #include<utility>
 #include<sstream>
 #include<map>
+#include<fstream>
 //#include <filesystem>
+
 using namespace std;
-auto _time_stamp = chrono::high_resolution_clock::now();
-void set_time_stamp() {
-	_time_stamp = chrono::high_resolution_clock::now();
-}
-double get_time() {  //in seconds
-	auto cur = chrono::high_resolution_clock::now();
-	return chrono::duration_cast<chrono::microseconds>(cur-_time_stamp).count()/1000000.0;
-}
+
+struct Timer {
+	chrono::high_resolution_clock::time_point _time_stamp;
+	void set() {
+		_time_stamp = chrono::high_resolution_clock::now();
+	}
+	Timer() {
+		set();
+	}
+	double get() {  //in seconds
+		auto cur = chrono::high_resolution_clock::now();
+		return chrono::duration_cast<chrono::microseconds>(cur-_time_stamp).count()/1000000.0;
+	}
+};
 
 struct Operation {
 	char *key;
@@ -29,21 +39,49 @@ struct Status {
 	int fp;
 	double t;
 };
+typedef vector<Operation> Data;
+
+class DataGenerator {
+	char* gen_string_by_int(long long x) {
+		char *s = new char [19];
+		for (int i=0; i<18; i++) {
+			s[i] = '0'+x%10;
+			x /= 10;
+		}
+		s[18] = 0;
+		return s;
+	}
+public:
+	void gen_random_data(Data &data, int n, bool no_query=false) {
+		cerr<<"Generating random data n = " << n ;
+		if (no_query) cerr << " no query";
+		cerr << " ... ";
+		data.clear();
+		long long *a = new long long[n+1];
+		long long m = 1000000000000000003ll, x = m-1;
+		for (int i=0; i<=n; i++) {
+			a[i] = x;
+			x = 1ll*x*3%m;
+		}
+		int seg = 20;
+		for(int i=0; i<seg; i++){
+			int j=(long long)n*i/seg, k=(long long)n*(i+1)/seg;
+			for(int l=j; l<k; ++l)
+				data.push_back(Operation(0, gen_string_by_int(a[l]), 0, l==k-1));
+			if(!no_query) {
+				for(int l=j;l<k;++l) {
+					if(rand()&1)
+						data.push_back(Operation(1, gen_string_by_int(a[rand()%k]), true, l==k-1));
+					else
+						data.push_back(Operation(1, gen_string_by_int(a[k+rand()%(n-k+1)]), false, l==k-1));
+				}
+			}
+		}
+		cerr << "generated " << data.size() << " operations." << endl;
+	}
+};
 
 class EvaluationBase {
-public:
-	virtual void init() {
-		assert(false);
-	}
-	virtual bool insert(char *key) {
-		assert(false);
-	}
-	virtual bool query(char *key) {
-		assert(false);
-	}
-	virtual void debug() {
-		assert(false);
-	}
 	string log_dir, log_path;
 	void open_log() {
 		/*
@@ -55,11 +93,9 @@ public:
 		cerr<< "Saving log to " << log_path << endl;
 		assert(freopen(log_path.c_str(), "a", stdout));
 	}
-
-	vector<Operation> data;
-	vector<Status> results;
-	int insert_tot = 0, query_tot = 0, query_ans_cnt[2] = {};
 	void _precompute_data() {
+		insert_tot = query_tot = 0;
+		int query_ans_cnt[2] = {};
 		for (auto o : data) {
 			if (o.type==0) {
 				insert_tot++;
@@ -84,7 +120,7 @@ public:
 		int false_negative = 0;
 		int fail_num = 0;
 
-		set_time_stamp();
+		Timer T;
 		for (int i=0; i<data.size(); i++) {
 			if (data[i].type==0) {
 				bool ok = insert(data[i].key);
@@ -97,7 +133,7 @@ public:
 					else false_negative++;
 			}
 			if (data[i].checkpoint) {
-				results.push_back((Status){i, point_false_positive, get_time()});
+				results.push_back((Status){i, point_false_positive, T.get()});
 				false_positive += point_false_positive;
 				point_false_positive = 0;
 				debug();
@@ -145,10 +181,48 @@ public:
 				it++;
 			}
 			if (it==results.size()) break;
-		}
-		
+		}	
 	}
-	void evaluation(string filter_name, string eval_name = "", string path="../log") {
+public:
+	int max_insert_num;
+	Data data;
+	DataGenerator data_generator;
+	vector<Status> results;
+	int insert_tot = 0, query_tot = 0;
+
+	virtual string get_filter_name() {
+		assert(false);
+	}
+	virtual void init() {
+		assert(false);
+	}
+	virtual bool insert(char *key) {
+		assert(false);
+	}
+	virtual bool query(char *key) {
+		assert(false);
+	}
+	virtual void debug() {
+	}
+	// get data and evaluation config (e.g. requirements) prepared 
+	void prepare(string opt = "load_config", string config_path = "../eval_config.txt") {
+		if (opt == "load_config") {
+			ifstream in(config_path);
+			assert(in.is_open());
+			int n;
+			in>>n; 
+			max_insert_num = 1 << n;
+			if (get_filter_name()=="Omnipotent") {
+				max_insert_num += max_insert_num / 2;
+			}
+			data_generator.gen_random_data(data, max_insert_num);
+			in.close();
+		} else {
+			assert(false);
+		}
+	}
+
+	void evaluation(string eval_name = "", string path="../log") {
 		time_t time_now = time(0);
 		string time_str = (ctime(&time_now));
 		for (int i=0; i<time_str.size(); i++) {
@@ -161,12 +235,11 @@ public:
 //		log_dir = path + "/" + filter_name + "/";
 		log_dir = path + "/";		
 //		log_path = log_dir + eval_name + time_str + ".txt";
-		log_path = log_dir + eval_name + filter_name + " " + time_str + ".txt";
+		log_path = log_dir + eval_name + get_filter_name() + " " + time_str + ".txt";
 		open_log();
 		
-		cout << "Evaluating [" << filter_name << "] in evaluation [" << eval_name << "]" << endl;
-		cerr << "Evaluating [" << filter_name << "] in evaluation [" << eval_name << "]" << endl;
-		
+		cout << "Evaluating [" << get_filter_name() << "] in evaluation [" << eval_name << "]" << endl;
+		cerr << "Evaluating [" << get_filter_name() << "] in evaluation [" << eval_name << "]" << endl;
 		
 		init();
 		_precompute_data();
@@ -179,39 +252,5 @@ public:
 			delete o.key;
 		}
 	}
-
-	void gen_random_data(int n, bool no_query=false);
+	
 };
-
-char* gen_string_by_int(long long x) {
-	char *s = new char [19];
-	for (int i=0; i<18; i++) {
-		s[i] = '0'+x%10;
-		x /= 10;
-	}
-	s[18] = 0;
-	return s;
-}
-void EvaluationBase::gen_random_data(int n, bool no_query) {
-	data.clear();
-	long long *a = new long long[n+1];
-	long long m = 1000000000000000003ll, x = m-1;
-	for (int i=0; i<=n; i++) {
-		a[i] = x;
-		x = 1ll*x*3%m;
-	}
-	int seg = 20;
-	for(int i=0; i<seg; i++){
-		int j=(long long)n*i/seg, k=(long long)n*(i+1)/seg;
-		for(int l=j; l<k; ++l)
-			data.push_back(Operation(0, gen_string_by_int(a[l]), 0, l==k-1));
-		if(!no_query) {
-			for(int l=j;l<k;++l) {
-				if(rand()&1)
-					data.push_back(Operation(1, gen_string_by_int(a[rand()%k]), true, l==k-1));
-				else
-					data.push_back(Operation(1, gen_string_by_int(a[k+rand()%(n-k+1)]), false, l==k-1));
-			}
-		}
-	}
-}
