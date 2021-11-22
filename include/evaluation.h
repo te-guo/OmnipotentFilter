@@ -194,11 +194,12 @@ char* gen_string_by_int(long long x) {
 }
 void EvaluationBase::gen_random_data(int n, bool no_query) {
 	data.clear();
-	long long *a = new long long[n+1];
-	long long m = 1000000000000000003ll, x = m-1;
-	for (int i=0; i<=n; i++) {
+	int m = n*1.1;
+	long long *a = new long long[m+1];
+	long long mod = 1000000000000000003ll, x = mod-1;
+	for (int i=0; i<=m; i++) {
 		a[i] = x;
-		x = 1ll*x*3%m;
+		x = 1ll*x*3%mod;
 	}
 	int seg = 20;
 	for(int i=0; i<seg; i++){
@@ -210,7 +211,7 @@ void EvaluationBase::gen_random_data(int n, bool no_query) {
 				if(rand()&1)
 					data.push_back(Operation(1, gen_string_by_int(a[rand()%k]), true, l==k-1));
 				else
-					data.push_back(Operation(1, gen_string_by_int(a[k+rand()%(n-k+1)]), false, l==k-1));
+					data.push_back(Operation(1, gen_string_by_int(a[k+rand()%(m-k+1)]), false, l==k-1));
 			}
 		}
 	}
