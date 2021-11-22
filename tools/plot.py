@@ -1,3 +1,6 @@
+###################
+# $ python3 plot.py ../log/[file_1] ../log/[file_2] ../log/[file_3]
+###################
 import sys
 import re
 import matplotlib.pyplot as plt
