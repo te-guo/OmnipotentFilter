@@ -225,7 +225,7 @@ public:
 		}
 	}
 
-	void evaluation(string eval_name = "", string path="../log") {
+	void evaluation(char* eval_name = "", bool time_str_open = true, string path="../log") {
 		time_t time_now = time(0);
 		string time_str = (ctime(&time_now));
 		for (int i=0; i<time_str.size(); i++) {
@@ -235,9 +235,14 @@ public:
 				time_str[i] = '_';
 		}
 		while (time_str.back()<32) time_str.pop_back();
-		log_dir = path + "/";		
-//		log_path = log_dir + eval_name + time_str + ".txt";
-		log_path = log_dir + eval_name + get_filter_name() + " " + time_str + ".txt";
+		log_dir = path + "/";
+		log_path = log_dir;
+		if(eval_name != string(""))
+			log_path += string(eval_name) + " ";
+		log_path += get_filter_name();
+		if(time_str_open)
+			log_path +=" " + time_str;
+		log_path += ".txt";
 		open_log();
 		
 		cout << get_filter_name() << endl;

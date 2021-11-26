@@ -31,6 +31,9 @@ public:
 } E;
 int main(int argc, char* argv[]) {
 	E.prepare();
-	E.evaluation();
+	if(argc >= 2)
+		E.evaluation(argv[1], false);
+	else
+		E.evaluation();
 	return 0;
 }
