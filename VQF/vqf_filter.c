@@ -20,6 +20,7 @@
 
 #include "vqf_filter.h"
 #include "vqf_precompute.h"
+#include "hashing.h"
 
 // ALT block check is set of 75% of the number of slots
 #if TAG_BITS == 8
@@ -390,7 +391,7 @@ bool vqf_insert(vqf_filter * restrict filter, uint64_t hash) {
    uint64_t block_free = get_block_free_space(*block_md);
 #endif
    uint64_t tag = hash & TAG_MASK;
-   uint64_t alt_block_index = ((hash ^ (tag * 0x5bd1e995)) % range) >> key_remainder_bits;
+   uint64_t alt_block_index = (block_index ^ hash_func3_32bit(tag)) % (range >> key_remainder_bits);
 
    __builtin_prefetch(&blocks[alt_block_index/QUQU_BUCKETS_PER_BLOCK]);
 
@@ -530,7 +531,7 @@ bool vqf_remove(vqf_filter * restrict filter, uint64_t hash) {
 
    uint64_t block_index = hash >> key_remainder_bits;
    uint64_t tag = hash & TAG_MASK;
-   uint64_t alt_block_index = ((hash ^ (tag * 0x5bd1e995)) % range) >> key_remainder_bits;
+   uint64_t alt_block_index = (block_index ^ hash_func3_32bit(tag)) % (range >> key_remainder_bits);
 
    __builtin_prefetch(&filter->blocks[alt_block_index / QUQU_BUCKETS_PER_BLOCK]);
 
@@ -613,7 +614,7 @@ bool vqf_is_present(vqf_filter * restrict filter, uint64_t hash) {
 
    uint64_t block_index = hash >> key_remainder_bits;
    uint64_t tag = hash & TAG_MASK;
-   uint64_t alt_block_index = ((hash ^ (tag * 0x5bd1e995)) % range) >> key_remainder_bits;
+   uint64_t alt_block_index = (block_index ^ hash_func3_32bit(tag)) % (range >> key_remainder_bits);
 
    __builtin_prefetch(&filter->blocks[alt_block_index / QUQU_BUCKETS_PER_BLOCK]);
 
