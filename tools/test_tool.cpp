@@ -6,19 +6,6 @@
 using namespace std;
 typedef long long ll;
 
-string get_time_str(){
-	time_t time_now = time(0);
-	string time_str = (ctime(&time_now));
-	for (int i=0; i<time_str.size(); i++) {
-		if (time_str[i]==' ')
-			time_str[i] = '+';
-		if (time_str[i]==':')
-			time_str[i] = '_';
-	}
-	while (time_str.back()<32) time_str.pop_back();
-	return time_str;
-}
-
 int main(int argc, char* argv[]) {
 	vector<string> folders = {"Omnipotent", "VacuumFilter", "VQF", "LDCF"};
 	string eval_name = argc >= 2 ? string(argv[1]) : get_time_str();
