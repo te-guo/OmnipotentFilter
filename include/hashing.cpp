@@ -34,3 +34,12 @@ uint32_t hash_func3_32bit(uint32_t fp){
 	h ^= h >> 16;
 	return h;
 }
+uint32_t hash_func4_32bit(uint32_t fp){
+	uint64_t h = fp + _random_seed;
+	h ^= h >> 16;
+	h *= 0x85ebca6b;
+	h ^= h >> 13;
+	h *= 0xc2b2ae35;
+	h ^= h >> 16;
+	return h;
+}

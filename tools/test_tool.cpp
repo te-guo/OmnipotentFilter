@@ -7,7 +7,7 @@ using namespace std;
 typedef long long ll;
 
 int main(int argc, char* argv[]) {
-	vector<string> folders = {"Omnipotent", "VacuumFilter", "VQF", "LDCF"};
+	vector<string> folders = {"Omnipotent", "VacuumFilter", "VQF", "LDCF", "Morton"};
 	string eval_name = argc >= 2 ? string(argv[1]) : get_time_str();
 	string options = " " + eval_name;
 	
