@@ -1,5 +1,5 @@
 ###################
-# $ python3 plot.py ../log/[file_1] ../log/[file_2] ../log/[file_3]
+# $ python3 plot.py [output_name] ../log/[input_1] ../log/[input_2] ../log/[input_3]
 ###################
 import sys
 import re
@@ -10,12 +10,14 @@ colors = ['red', 'green', 'blue', 'black', 'purple']
 names = []
 insert = []
 query = []
+remove = []
 
-for file in sys.argv[1:]:
+for file in sys.argv[2:]:
     f = open(file, 'r')
     names.append(f.readline().split()[0])
     insert.append([])
     query.append([])
+    remove.append([])
     while True:
         line = f.readline().split()
         if(line[0] == 'Procedure:'):
@@ -28,9 +30,14 @@ for file in sys.argv[1:]:
         for i in range(1, len(line)-1, 2):
             status[line[i]] = float(line[i+1])
         if line[0][0] == 'I':
-            insert[-1].append(status)
+            if len(insert[-1]) < 1 or status['Load_factor'] > insert[-1][-1]['Load_factor']:
+                insert[-1].append(status)
+        elif line[0][0] == 'Q':
+            if len(query[-1]) < 1 or status['Load_factor'] > query[-1][-1]['Load_factor']:
+                query[-1].append(status)
         else:
-            query[-1].append(status)
+            if len(remove[-1]) < 1 or status['Load_factor'] > remove[-1][-1]['Load_factor']:
+                remove[-1].append(status)
     f.close()
     n += 1
 
@@ -66,6 +73,20 @@ subfig.legend(fontsize=5)
 
 
 subfig = fig.add_subplot(2, 2, 3)
+subfig.set_title('Remove Throughput', fontsize=8)
+subfig.set_xlabel('Load factor', fontsize=5)
+subfig.set_ylabel('Throughput (M/s)', fontsize=5)
+subfig.tick_params(axis='both', labelsize=5)
+for i in range(n):
+    x = [status['Load_factor'] for status in remove[i]]
+    y = [status['Throughput']/1e6 for status in remove[i]]
+    subfig.plot(x, y, color = colors[i], linewidth = 0.8, linestyle='-', label=names[i])
+subfig.set_xlim(xmin=0,xmax=1)
+subfig.set_ylim(ymin=0)
+subfig.legend(fontsize=5)
+
+
+subfig = fig.add_subplot(2, 2, 4)
 subfig.set_title('FPR', fontsize=8)
 subfig.set_xlabel('Load factor', fontsize=5)
 subfig.set_ylabel('FPR (%)', fontsize=5)
@@ -80,4 +101,4 @@ subfig.legend(fontsize=5)
 
 #fig.suptitle('Result', fontsize=9)
 fig.tight_layout(pad=0.7, w_pad=0.7, h_pad=0.7)
-fig.savefig('../log/Result.png', dpi=1000)
+fig.savefig('../log/' + sys.argv[1] + '.png', dpi=1000)

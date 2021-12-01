@@ -11,7 +11,7 @@ class OmnipotentEvaluation : public EvaluationBase {
 	StaticOmnipotentFilter<uint16_t> *F;
 	string get_filter_name() {return "Omnipotent";}
 	void init() {
-		F = new StaticOmnipotentFilter<uint16_t> (max_insert_num);
+		F = new StaticOmnipotentFilter<uint16_t> (max_capacity);
 	}
 	bool insert(char *key) {
 		return F->insert_key(key);

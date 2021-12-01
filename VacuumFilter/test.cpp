@@ -11,7 +11,7 @@ class VacuumEvaluation : public EvaluationBase {
 		return "VacuumFilter";
 	}
 	void init() {
-		F.init(max_insert_num, 4, 400);
+		F.init(max_capacity, 4, 400);
 	}
 	bool insert(char *key) {
 		return F.insert(key);

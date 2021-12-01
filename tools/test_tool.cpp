@@ -20,7 +20,7 @@ string get_time_str(){
 }
 
 int main(int argc, char* argv[]) {
-	vector<string> folders = {"Omnipotent", "VacuumFilter", "VQF", "LDCF"};
+	vector<string> folders = {/*"Omnipotent", */"VacuumFilter", "VQF", "LDCF"};
 	string eval_name = argc >= 2 ? string(argv[1]) : get_time_str();
 	string options = " " + eval_name;
 	
@@ -49,6 +49,7 @@ int main(int argc, char* argv[]) {
 	{
 		string cmd = "";
 		cmd += "python3 plot.py";
+		cmd += " " + eval_name;
 		for (auto f : folders)
 			cmd += " ../log/" + eval_name + "\\ " + f + ".txt";
 		system(cmd.c_str());

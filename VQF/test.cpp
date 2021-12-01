@@ -13,7 +13,7 @@ class VqfEvaluation : public EvaluationBase {
 		return "VQF";
 	}
 	void init() {
-		F = vqf_init(max_insert_num);
+		F = vqf_init(max_capacity);
 	}
 	bool insert(char *key) {
 		return vqf_insert(F, hash_func1_32bit(key));
