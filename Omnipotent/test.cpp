@@ -19,6 +19,9 @@ class OmnipotentEvaluation : public EvaluationBase {
 	bool query(char *key) {
 		return F->query_key(key);
 	}
+	bool remove(char *key) {
+		return F->remove_key(key);
+	}
 	void debug() {
 //		F.show_statistic();
 	}

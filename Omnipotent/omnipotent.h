@@ -27,12 +27,20 @@ public:
 		return true;
 	}
 	int query(FINGERPRINT_T f) {
-		for (int i=0; i<SLOT_N; i++) {
+		for (int i=0; i<num; i++) {
 			if (a[i] == f) {
 				return i;
 			}
 		}
 		return -1;
+	}
+	bool remove(FINGERPRINT_T f) {
+		for (int i=0; i<num; i++)
+			if (a[i] == f) {
+				a[i] = a[--num];
+				return true;
+			}
+		return false;
 	}
 	void replace(int i, FINGERPRINT_T f) {
 		a[i] = f;
@@ -132,6 +140,12 @@ private:
 		if (b1[p1].query(f)!=-1) return true;
 		return false;
 	}
+	bool _remove(int p1, FINGERPRINT_T f) {
+		int p2 = get_large_pos(p1, f);
+		if (b2[p2].remove(f)) return true;
+		if (b1[p1].remove(f)) return true;
+		return false;
+	}
 public:
 	bool insert_key(char *key) {
 		return _insert(hash_func1_32bit(key)%BUCKET_N, hash_func2_32bit(key));
@@ -139,5 +153,9 @@ public:
 
 	bool query_key(char *key) {
 		return _query(hash_func1_32bit(key)%BUCKET_N, hash_func2_32bit(key));
+	}
+
+	bool remove_key(char *key) {
+		return _remove(hash_func1_32bit(key)%BUCKET_N, hash_func2_32bit(key));
 	}
 };
