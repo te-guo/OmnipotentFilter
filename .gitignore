@@ -1,7 +1,4 @@
 log/
 test
-/VQF/obj/
-/Omnipotent/obj/
-/VacuumFilter/obj/
-/LDCF/obj/
-/Morton/obj/
+/*/obj/
+!/Morton/obj/
