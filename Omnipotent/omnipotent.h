@@ -48,7 +48,7 @@ public:
 };
 
 typedef uint32_t ui;
-#define USE_STATISTIC
+//#define USE_STATISTIC
 
 template<class FINGERPRINT_T>   //FINGERPRINT_T  must be  uint??_t
 class StaticOmnipotentFilter {
