@@ -7,51 +7,18 @@ void set_random_seed(uint64_t seed) {  // A fixed pseudo-random sequence with re
 	_random_seed = seed;
 }
 
-uint64_t* hash_func_64bit(uint64_t key) {
+uint64_t hash_func_64bit(uint64_t key) {
 	uint64_t ret[2];
 	MurmurHash3_x64_128(&key, 8, _random_seed, ret);
-	return ret;
+	return ret[0];
 }
 
-uint64_t* hash_func_64bit(const char* key) {
+uint64_t hash_func_64bit(const char* key) {
 	uint64_t ret[2];
 	MurmurHash3_x64_128(key, strlen(key), _random_seed, ret);
-	return ret;
+	return ret[0];
 }
 
-
-// The following hash functions are to be discarded 
-uint64_t hash_func1_64bit(const char* key) {
-	uint64_t hash_value = _random_seed;
-	for (int i=0; key[i]; i++) {
-		hash_value ^= (hash_value * 233 + hash_value/666 + key[i]);
-	}
-	for (int i=0; key[i]; i++) {
-		hash_value ^= (hash_value * 233 + hash_value/666 + key[i]);
-	}
-	return hash_value;
-}
-
-uint32_t hash_func1_32bit(const char* key) {
-	uint64_t hash_value = _random_seed;
-	for (int i=0; key[i]; i++) {
-		hash_value ^= (hash_value * 233 + hash_value/666 + key[i]);
-	}
-	for (int i=0; key[i]; i++) {
-		hash_value ^= (hash_value * 233 + hash_value/666 + key[i]);
-	}
-	return hash_value;
-}
-uint32_t hash_func2_32bit(const char* key) {
-	uint64_t hash_value = _random_seed;
-	for (int i=0; key[i]; i++) {
-		hash_value ^= (hash_value * 2333 + hash_value/6666 + key[i]);
-	}
-	for (int i=0; key[i]; i++) {
-		hash_value ^= (hash_value * 2333 + hash_value/6666 + key[i]);
-	}
-	return hash_value;
-}
 uint32_t hash_func3_32bit(uint32_t fp){
 	uint64_t h = fp ^ _random_seed;
 	h ^= h >> 16;
