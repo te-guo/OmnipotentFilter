@@ -23,7 +23,7 @@ $(OBJDIR)/%.o: ../include/%.cpp ../include/%.h | $(OBJDIR)
 	g++ $(FLAGS) -c -o $@ $<
 
 # make source files
-$(OBJDIR)/%.o: %.cpp %.h | $(OBJDIR)
+$(OBJDIR)/%.o: %.cpp | $(OBJDIR)
 	g++ $(FLAGS) -c -o $@ $<
 
 # create object directory
