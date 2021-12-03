@@ -10,16 +10,20 @@ all: test
 test: $(patsubst %.cpp, $(OBJDIR)/%.o, $(wildcard *.cpp))
 test: $(patsubst $(INCLUDE_PATH)/%.cpp, $(OBJDIR)/%.o, $(wildcard $(INCLUDE_PATH)/*.cpp))
 
+# dependencies between program and .h files
+test: $(wildcard $(INCLUDE_PATH)/*.h)
+test: $(wildcard *.h)
+
 # make targets
 $(TARGETS): | $(OBJDIR)
-	g++ $^ $(LFLAGS) -o $@ 
+	g++ $(filter %.o, $^) $(LFLAGS) -o $@ 
 
 # make include files
 $(OBJDIR)/%.o: ../include/%.cpp ../include/%.h | $(OBJDIR)
 	g++ $(FLAGS) -c -o $@ $<
 
 # make source files
-$(OBJDIR)/%.o: %.cpp | $(OBJDIR)
+$(OBJDIR)/%.o: %.cpp %.h | $(OBJDIR)
 	g++ $(FLAGS) -c -o $@ $<
 
 # create object directory
