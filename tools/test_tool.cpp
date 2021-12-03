@@ -18,20 +18,16 @@ int main(int argc, char* argv[]) {
 		cmd += "mkdir log";
 		system(cmd.c_str());
 	}
+	vector<string> make_updates;
 	for (auto f : folders) {	
 		string cmd = "";
-		cmd += "cd ..";
-		cmd += " && ";
-		cmd += "cd " + f;
-		cmd += " && ";
-		//cmd += "make clean";
-		//cmd += " && ";
-		cmd += "make";
-		cmd += " && ";
-		cmd += "./test" + options;
-		cmd += " && ";
-		cmd += "cd ..";
-		system(cmd.c_str());
+		cmd += "cd .. && cd " + f;
+		int ret = system((cmd + " && make -q").c_str());
+		assert(ret == 256 || ret == 0);
+		if (ret == 256) make_updates.push_back(f);
+
+		assert(system((cmd + " && make").c_str()) == 0);
+		assert(system((cmd + " && ./test" + options).c_str()) == 0);
 	}
 	{
 		string cmd = "";
@@ -40,6 +36,12 @@ int main(int argc, char* argv[]) {
 		for (auto f : folders)
 			cmd += " ../log/" + eval_name + "\\ " + f + ".txt";
 		system(cmd.c_str());
+	}
+	for (auto f : make_updates) {
+		cerr << "[" << f << "] has updated files!" << endl;
+	}
+	if (make_updates.size()==0) {
+		cerr << "No updated files detected!" << endl;
 	}
 	return 0;
 }
