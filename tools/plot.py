@@ -92,6 +92,8 @@ subfig.set_xlabel('Load factor', fontsize=5)
 subfig.set_ylabel('FPR (%)', fontsize=5)
 subfig.tick_params(axis='both', labelsize=5)
 for i in range(n):
+    if names[i] == 'LDCF':
+        continue
     x = [status['Load_factor'] for status in query[i]]
     y = [status['FPR']*100 for status in query[i]]
     subfig.plot(x, y, color = colors[i], linewidth = 0.8, linestyle='-', label=names[i])
