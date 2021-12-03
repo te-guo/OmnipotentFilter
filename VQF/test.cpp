@@ -16,13 +16,13 @@ class VqfEvaluation : public EvaluationBase {
 		F = vqf_init(max_capacity);
 	}
 	bool insert(char *key) {
-		return vqf_insert(F, hash_func1_32bit(key));
+		return vqf_insert(F, hash_func1_64bit(key));
 	}
 	bool query(char *key) {
-		return vqf_is_present(F, hash_func1_32bit(key));
+		return vqf_is_present(F, hash_func1_64bit(key));
 	}
 	bool remove(char *key) {
-		return vqf_remove(F, hash_func1_32bit(key));
+		return vqf_remove(F, hash_func1_64bit(key));
 	}
 	void debug() {
 	}

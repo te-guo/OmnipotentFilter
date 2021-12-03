@@ -21,6 +21,17 @@ uint64_t* hash_func_64bit(const char* key) {
 
 
 // The following hash functions are to be discarded 
+uint64_t hash_func1_64bit(const char* key) {
+	uint64_t hash_value = _random_seed;
+	for (int i=0; key[i]; i++) {
+		hash_value ^= (hash_value * 233 + hash_value/666 + key[i]);
+	}
+	for (int i=0; key[i]; i++) {
+		hash_value ^= (hash_value * 233 + hash_value/666 + key[i]);
+	}
+	return hash_value;
+}
+
 uint32_t hash_func1_32bit(const char* key) {
 	uint64_t hash_value = _random_seed;
 	for (int i=0; key[i]; i++) {

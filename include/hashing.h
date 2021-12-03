@@ -9,6 +9,7 @@ extern void set_random_seed(uint64_t seed);  // A fixed pseudo-random sequence w
 extern uint64_t* hash_func_64bit(uint64_t key);
 extern uint64_t* hash_func_64bit(const char* key);
 
+extern uint64_t hash_func1_64bit(const char* key);
 extern uint32_t hash_func1_32bit(const char* key);
 extern uint32_t hash_func2_32bit(const char* key);
 extern uint32_t hash_func3_32bit(uint32_t h);

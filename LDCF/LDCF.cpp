@@ -146,9 +146,9 @@ bool LogarithmicDynamicCuckooFilter::deleteItem(const char* item){
 
 
 void LogarithmicDynamicCuckooFilter::generateIF(const char* item, size_t &index, uint32_t &fingerprint, size_t fingerprint_size, size_t single_table_length){
-	index = hash_func1_32bit(item) % single_table_length;
-	fingerprint = hash_func2_32bit(item);
-	fingerprint &= (1u << fingerprint_size) - 1u;
+	uint64_t hash = hash_func1_64bit(item);
+	index = (hash >> 32) % single_table_length;
+	fingerprint = hash & (1u << fingerprint_size) - 1u;
 	fingerprint |= (uint32_t)(fingerprint == 0);
 }
 

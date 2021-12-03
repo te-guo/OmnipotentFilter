@@ -148,14 +148,17 @@ private:
 	}
 public:
 	bool insert_key(char *key) {
-		return _insert(hash_func1_32bit(key)%BUCKET_N, hash_func2_32bit(key));
+		uint64_t hash = hash_func1_64bit(key);
+		return _insert((hash >> 32) % BUCKET_N, hash & 0x0000ffffu);
 	}
 
 	bool query_key(char *key) {
-		return _query(hash_func1_32bit(key)%BUCKET_N, hash_func2_32bit(key));
+		uint64_t hash = hash_func1_64bit(key);
+		return _query((hash >> 32) % BUCKET_N, hash & 0x0000ffffu);
 	}
 
 	bool remove_key(char *key) {
-		return _remove(hash_func1_32bit(key)%BUCKET_N, hash_func2_32bit(key));
+		uint64_t hash = hash_func1_64bit(key);
+		return _remove((hash >> 32) % BUCKET_N, hash & 0x0000ffffu);
 	}
 };

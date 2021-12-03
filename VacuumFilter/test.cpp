@@ -14,13 +14,13 @@ class VacuumEvaluation : public EvaluationBase {
 		F.init(max_capacity, 4, 400);
 	}
 	bool insert(char *key) {
-		return F.insert(key);
+		return F.insert(hash_func1_64bit(key));
 	}
 	bool query(char *key) {
-		return F.lookup(key);
+		return F.lookup(hash_func1_64bit(key));
 	}
 	bool remove(char *key) {
-		return F.del(key);
+		return F.del(hash_func1_64bit(key));
 	}
 	void debug() {
 		F.debug_test();
