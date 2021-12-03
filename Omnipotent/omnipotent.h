@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <iostream>
 #include <cassert>
+#include <cstring>
 
 #define SLOT_N 8
 #define FINGERPRINT_T uint16_t
@@ -18,6 +19,10 @@ class Bucket {
 	FINGERPRINT_T a[SLOT_N];
 	uint8_t num;   // number of slots
 public:
+	Bucket() {
+		memset(a, 0, sizeof(a));
+		num = 0;
+	}
 	uint8_t size() const {return num;}
 	bool is_full() const {return num==SLOT_N;}
 	FINGERPRINT_T& operator [] (const int &t) {return a[t];}
@@ -28,10 +33,24 @@ public:
 		return true;
 	}
 	int query(FINGERPRINT_T f) {
-		for (int i=0; i<num; i++) {
-			if (a[i] == f) {
-				return i;
-			}
+		if (f) {
+			if (a[0]==f) return 0;
+			if (a[1]==f) return 1;
+			if (a[2]==f) return 2;
+			if (a[3]==f) return 3;
+			if (a[4]==f) return 4;
+			if (a[5]==f) return 5;
+			if (a[6]==f) return 6;
+			if (a[7]==f) return 7;	
+		} else {	
+			if (!a[0] && num>=1) return 0;
+			if (!a[1] && num>=2) return 1;
+			if (!a[2] && num>=3) return 2;
+			if (!a[3] && num>=4) return 3;
+			if (!a[4] && num>=5) return 4;
+			if (!a[5] && num>=6) return 5;
+			if (!a[6] && num>=7) return 6;
+			if (!a[7] && num>=8) return 7;
 		}
 		return -1;
 	}
@@ -39,6 +58,7 @@ public:
 		for (int i=0; i<num; i++)
 			if (a[i] == f) {
 				a[i] = a[--num];
+				a[num] = 0;
 				return true;
 			}
 		return false;
@@ -54,7 +74,8 @@ class StaticOmnipotentFilter {
 private:
 	OmnipotentConfig config;
 	Bucket *b1, *b2;   //b1 -- small    b2 -- large
-	int BUCKET_N;
+	int BUCKET_N, L;
+	int used_slots_num;
 public:
 	//statistic info
 #ifdef USE_STATISTIC
@@ -66,16 +87,18 @@ public:
 		for (int i=0; i<=SLOT_N; i++) b1_used += b1_cnt[i] * i;
 		for (int i=0; i<=SLOT_N; i++) b2_used += b2_cnt[i] * i;
 		int tot = BUCKET_N*SLOT_N*3;
-		
 		printf("(statistic) Load Factor: %.5lf  Kick ratio: %.3lf  Big/small: %.3lf\n", 1.0*(b1_used+b2_used)/tot, 1.0*kick_cnt/(b1_used+b2_used), 1.0*b2_used/b1_used);
 		for (int i=0; i<=SLOT_N; i++) printf("%d ", b1_cnt[i]); puts("");
 		for (int i=0; i<=SLOT_N; i++) printf("%d ", b2_cnt[i]); puts("");
 	}
 #endif
 
-	StaticOmnipotentFilter(int max_insert_num) { 
+	StaticOmnipotentFilter(int max_insert_num) {
+		used_slots_num = 0; 
 		BUCKET_N = max_insert_num / 3 / SLOT_N;
 		assert((BUCKET_N & (BUCKET_N-1)) == 0);
+		L = 0;
+		while ((1<<L) < BUCKET_N) L++;
 		b1 = new Bucket [BUCKET_N];
 		b2 = new Bucket [BUCKET_N<<1];
 		config.fp_len = sizeof(FINGERPRINT_T)*8;
@@ -87,26 +110,62 @@ public:
 private:
 
 	int get_large_pos(const int &pos, const FINGERPRINT_T &f) {
-		return ((pos<<1)|(f&1)) ^ ((f>>1)%(BUCKET_N<<1));            //!!![MODIFIED]
+		return ((pos<<1)|(f&1)) ^ ((f>>1)&((BUCKET_N<<1)-1));            //!!![MODIFIED]
 	}
 
 	bool _insert(int p1, FINGERPRINT_T f) {
 		int p2 = get_large_pos(p1, f);
 		//std::cout<<"insert:"<<p1<<" "<<p2<<" "<<f<<std::endl;
+		
 		if (b1[p1].size() <= b2[p2].size() + config.SMALL_BUCKET_PRIORITY && !b1[p1].is_full()) {
 			b1[p1].insert(f);
-			
 			#ifdef USE_STATISTIC
 				b1_cnt[b1[p1].size()-1]--;
 				b1_cnt[b1[p1].size()]++;
 			#endif
 		} else if (b1[p1].size() > b2[p2].size() + config.SMALL_BUCKET_PRIORITY && !b2[p2].is_full()) {
 			b2[p2].insert(f);
-
 			#ifdef USE_STATISTIC
 				b2_cnt[b2[p2].size()-1]--;
 				b2_cnt[b2[p2].size()]++;
 			#endif
+		/*
+		int expected = used_slots_num / (BUCKET_N*3) + 1;
+		int sz1 = -1, sz2 = -1;
+		int insert_id = -1;
+		if (f%3==0) {
+			sz1 = b1[p1].size();
+			if (sz1<expected) {
+				insert_id = 1;
+			}
+		} else {
+			sz2 = b2[p2].size();
+			if (sz2<expected) {
+				insert_id = 2;
+			}
+		}
+		if (insert_id == -1) {
+			if (sz1==-1) sz1 = b1[p1].size();
+			if (sz2==-1) sz2 = b2[p2].size();
+		} else {
+			static int hit_num = 0;
+			hit_num++;
+			if (rand()%10000==0) std::cerr << used_slots_num << " " << hit_num << std::endl;
+		}
+		if (insert_id != 2 && (insert_id == 1 || sz1 <= sz2 + config.SMALL_BUCKET_PRIORITY && sz1 < SLOT_N) ) {
+			b1[p1].insert(f);
+			#ifdef USE_STATISTIC
+				b1_cnt[b1[p1].size()-1]--;
+				b1_cnt[b1[p1].size()]++;
+			#endif
+		}
+		else if (insert_id != 1 && (insert_id == 2 || sz1 > sz2 + config.SMALL_BUCKET_PRIORITY && sz2 < SLOT_N) ) {
+			b2[p2].insert(f);
+			#ifdef USE_STATISTIC
+				b2_cnt[b2[p2].size()-1]--;
+				b2_cnt[b2[p2].size()]++;
+			#endif
+			*/
 		} else {
 			int mn = SLOT_N, mnp = -1, mni = -1;
 			FINGERPRINT_T mnf;
@@ -130,6 +189,7 @@ private:
 				b2_cnt[b2[mnp].size()]++;
 			#endif
 		}
+		used_slots_num++;
 		return true;
 	}
 
@@ -141,8 +201,10 @@ private:
 	}
 	bool _remove(int p1, FINGERPRINT_T f) {
 		int p2 = get_large_pos(p1, f);
+		used_slots_num--;
 		if (b2[p2].remove(f)) return true;
 		if (b1[p1].remove(f)) return true;
+		used_slots_num++;
 		return false;
 	}
 public:
