@@ -3,6 +3,7 @@ INCLUDE_PATH = ../include
 FLAGS = -Ofast -Wall -std=c++14 -I$(INCLUDE_PATH)
 LFLAGS = $(FLAGS)
 OBJDIR = obj
+HEADERS = $(wildcard *.h) $(wildcard $(INCLUDE_PATH)/*.h)
 
 all: test
 
@@ -10,20 +11,16 @@ all: test
 test: $(patsubst %.cpp, $(OBJDIR)/%.o, $(wildcard *.cpp))
 test: $(patsubst $(INCLUDE_PATH)/%.cpp, $(OBJDIR)/%.o, $(wildcard $(INCLUDE_PATH)/*.cpp))
 
-# dependencies between program and .h files
-test: $(wildcard $(INCLUDE_PATH)/*.h)
-test: $(wildcard *.h)
-
 # make targets
-$(TARGETS): | $(OBJDIR)
+$(TARGETS): $(HEADERS) | $(OBJDIR)
 	g++ $(filter %.o, $^) $(LFLAGS) -o $@ 
 
 # make include files
-$(OBJDIR)/%.o: ../include/%.cpp ../include/%.h | $(OBJDIR)
+$(OBJDIR)/%.o: ../include/%.cpp $(HEADERS) | $(OBJDIR)
 	g++ $(FLAGS) -c -o $@ $<
 
 # make source files
-$(OBJDIR)/%.o: %.cpp | $(OBJDIR)
+$(OBJDIR)/%.o: %.cpp $(HEADERS) | $(OBJDIR)
 	g++ $(FLAGS) -c -o $@ $<
 
 # create object directory
