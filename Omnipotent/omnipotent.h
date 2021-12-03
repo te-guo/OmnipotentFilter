@@ -146,6 +146,21 @@ private:
 		return false;
 	}
 public:
+	bool insert_key(uint64_t key) {
+		uint64_t hash = hash_func_64bit(key);
+		return _insert((hash >> 32) % BUCKET_N, hash & 0x0000ffffu);
+	}
+
+	bool query_key(uint64_t key) {
+		uint64_t hash = hash_func1_64bit(key);
+		return _query((hash >> 32) % BUCKET_N, hash & 0x0000ffffu);
+	}
+
+	bool remove_key(uint64_t key) {
+		uint64_t hash = hash_func1_64bit(key);
+		return _remove((hash >> 32) % BUCKET_N, hash & 0x0000ffffu);
+	}
+
 	bool insert_key(char *key) {
 		uint64_t hash = hash_func1_64bit(key);
 		return _insert((hash >> 32) % BUCKET_N, hash & 0x0000ffffu);

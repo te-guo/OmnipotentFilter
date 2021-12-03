@@ -100,14 +100,14 @@ struct BitMixMurmur {
 struct BitMixMurmur {
   inline hash_t operator()(keys_t key) const{
     #if CCF_KEY_SIZE == 4
-      return hashing_func1_32bit(key);
+      return hash_func1_64bit(key)>>32;
     #else
       return hash_func1_64bit(key);
     #endif
   } 
-  inline hash_t operator()(atom_t key) const{
+  inline hash_t fingerprint_hash(atom_t key) const{
     #if CCF_KEY_SIZE == 4
-      return hashing_func3_32bit(key);
+      return hash_func3_32bit(key);
     #else
       return ((uint64_t)hash_func4_32bit(key))<<32 | hash_func3_32bit(key);
     #endif

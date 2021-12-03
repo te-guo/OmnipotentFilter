@@ -380,7 +380,7 @@ namespace CompressedCuckoo{
   // The number of buckets in the table must be a power of 2 to use this.
   INLINE hash_t fan_et_al_partial_key_cuckoo_hash_alternate_bucket(hash_t 
     bucket_id, const atom_t fingerprint) const{
-    return (bucket_id ^ raw_primary_hash(fingerprint)) & (_total_buckets - 1);
+    return (bucket_id ^ raw_primary_hash_fingerprint(fingerprint)) & (_total_buckets - 1);
   }
 
   // See comment above
@@ -401,7 +401,7 @@ namespace CompressedCuckoo{
       }
 
       case AlternateBucketSelectionMethodEnum::FUNCTION_BASED_OFFSET:{
-        offset = ((raw_primary_hash(fingerprint) & 0x1fff) + 
+        offset = ((raw_primary_hash_fingerprint(fingerprint) & 0x1fff) + 
           (_buckets_per_block)) | one;
         break;
       }
@@ -859,8 +859,8 @@ namespace CompressedCuckoo{
   inline hash_t raw_primary_hash(keys_t key) const{
     return _hasher(key);
   }
-  inline hash_t raw_primary_hash(atom_t key) const{
-    return _hasher(key);
+  inline hash_t raw_primary_hash_fingerprint(atom_t fp) const{
+    return _hasher.fingerprint_hash(fp);
   }
   
   inline bool insert_many(const std::vector<keys_t>& keys, 

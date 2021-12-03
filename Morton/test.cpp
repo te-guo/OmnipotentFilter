@@ -14,13 +14,13 @@ class VqfEvaluation : public EvaluationBase {
 	void init() {
 		F = new CompressedCuckoo::Morton3_12(max_capacity);
 	}
-	bool insert(char *key) {
+	bool insert(uint64_t key) {
 		return F->insert(key);
 	}
-	bool query(char *key) {
+	bool query(uint64_t key) {
 		return F->likely_contains(key);
 	}
-	bool remove(char *key) {
+	bool remove(uint64_t key) {
 		return F->delete_item(key);
 	}
 	void debug() {

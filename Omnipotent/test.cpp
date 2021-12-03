@@ -13,13 +13,13 @@ class OmnipotentEvaluation : public EvaluationBase {
 	void init() {
 		F = new StaticOmnipotentFilter (max_capacity);
 	}
-	bool insert(char *key) {
+	bool insert(uint64_t key) {
 		return F->insert_key(key);
 	}
-	bool query(char *key) {
+	bool query(uint64_t key) {
 		return F->query_key(key);
 	}
-	bool remove(char *key) {
+	bool remove(uint64_t key) {
 		return F->remove_key(key);
 	}
 	void debug() {

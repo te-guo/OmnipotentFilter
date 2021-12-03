@@ -41,16 +41,16 @@ public:
 
 	void decompose(CuckooFilter* curCF);
 	//insert & query & delete functions
-	bool insertItem(const char* item);
+	bool insertItem(uint64_t item);
 	CuckooFilter* getChild0CF(CuckooFilter* curCF);
 	CuckooFilter* getChild1CF(CuckooFilter* curCF);
-	bool queryItem(const char* item);
-	bool deleteItem(const char* item);
+	bool queryItem(uint64_t item);
+	bool deleteItem(uint64_t item);
 
 	bool remove(CuckooFilter* cf_remove);
 
 	//generate 2 bucket addresses
-	void generateIF(const char* item, size_t &index, uint32_t &fingerprint, size_t fingerprint_size, size_t single_table_length);
+	void generateIF(uint64_t item, size_t &index, uint32_t &fingerprint, size_t fingerprint_size, size_t single_table_length);
 	void generateA(size_t index, uint32_t fingerprint, size_t &alt_index, size_t single_table_length);
 	
 	bool GetPre(uint32_t fingerprint, int level);

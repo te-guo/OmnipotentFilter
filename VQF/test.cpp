@@ -15,13 +15,13 @@ class VqfEvaluation : public EvaluationBase {
 	void init() {
 		F = vqf_init(max_capacity);
 	}
-	bool insert(char *key) {
+	bool insert(uint64_t key) {
 		return vqf_insert(F, hash_func1_64bit(key));
 	}
-	bool query(char *key) {
+	bool query(uint64_t key) {
 		return vqf_is_present(F, hash_func1_64bit(key));
 	}
-	bool remove(char *key) {
+	bool remove(uint64_t key) {
 		return vqf_remove(F, hash_func1_64bit(key));
 	}
 	void debug() {

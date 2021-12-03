@@ -30,11 +30,11 @@ struct Timer {
 };
 
 struct Operation {
-	char *key;
-	int ans;
+	uint64_t key;
+	bool ans;
 	int type;   // 0 -- insert   1 -- query   2 -- remove
 	bool checkpoint;
-	Operation(int _type, char *_key, int _ans, bool _checkpoint) : key(_key), ans(_ans), type(_type), checkpoint(_checkpoint) {}
+	Operation(int _type, uint64_t _key, bool _ans, bool _checkpoint) : key(_key), ans(_ans), type(_type), checkpoint(_checkpoint) {}
 };
 struct Status {
 	int id;
@@ -64,8 +64,9 @@ public:
 
 	virtual string get_filter_name();
 	virtual void init();
-	virtual bool insert(char *key);
-	virtual bool query(char *key);
+	virtual bool insert(uint64_t key);
+	virtual bool query(uint64_t key);
+	virtual bool remove(uint64_t key);
 	virtual void debug();
 	void prepare(string opt = "load_config", string config_path = "../eval_config.txt");
 	void evaluation(char* eval_name = "", bool time_str_open = true, string path="../log");

@@ -18,7 +18,9 @@ void DataGenerator::gen_random_data(Data &data, int n, bool no_query, bool no_re
     int m = n*1.1;
     long long *a = new long long[m+1];
     long long mod = 1000000000000000003ll, x = mod-1;
+    bool *alive = new bool [m+1];
     for (int i=0; i<=m; i++) {
+        alive[i] = true;
         a[i] = x;
         x = 1ll*x*3%mod;
     }
@@ -26,31 +28,32 @@ void DataGenerator::gen_random_data(Data &data, int n, bool no_query, bool no_re
     for(int i=0; i<seg; i++){
         int j=(long long)n*i/seg, k=(long long)n*(i+1)/seg;
         for(int l=j; l<k; ++l)
-            data.push_back(Operation(0, gen_string_by_int(a[l]), 0, l==k-1));
+            data.push_back(Operation(0, a[l], 0, l==k-1));
         if(!no_query) {
             for(int l=j;l<k;++l) {
                 if(rand()&1)
-                    data.push_back(Operation(1, gen_string_by_int(a[rand()%k]), true, l==k-1));
+                    data.push_back(Operation(1, a[rand()%k], true, l==k-1));
                 else
-                    data.push_back(Operation(1, gen_string_by_int(a[k+rand()%(m-k+1)]), false, l==k-1));
+                    data.push_back(Operation(1, a[k+rand()%(m-k+1)], false, l==k-1));
             }
         }
         if(!no_remove){
-            set<int> removed;
             vector<int> vec;
             for(int l=min(k/3, 3000); l; --l){
                 int x=rand()%k;
-                while(removed.count(x))x=rand()%k;
-                removed.insert(x);
+                while(!alive[x])x=rand()%k;
+                alive[x] = false;
                 vec.push_back(x);
-                data.push_back(Operation(2, gen_string_by_int(a[x]), 0, l==1));
+                data.push_back(Operation(2, a[x], 0, l==1));
             }
             random_shuffle(vec.begin(),vec.end());
             for(int l=0; l<vec.size(); ++l)
-                data.push_back(Operation(0, gen_string_by_int(a[vec[l]]), 0, l==vec.size()-1));
+                data.push_back(Operation(0, a[vec[l]], 0, l==vec.size()-1));
         }
     }
     cerr << "generated " << data.size() << " operations." << endl;
+    delete [] a;
+    delete [] alive;
 }
 
 
@@ -172,10 +175,13 @@ string EvaluationBase::get_filter_name() {
 void EvaluationBase::init() {
     assert(false);
 }
-bool EvaluationBase::insert(char *key) {
+bool EvaluationBase::insert(uint64_t key) {
     assert(false);
 }
-bool EvaluationBase::query(char *key) {
+bool EvaluationBase::query(uint64_t key) {
+    assert(false);
+}
+bool EvaluationBase::remove(uint64_t key) {
     assert(false);
 }
 void EvaluationBase::debug() {
@@ -222,9 +228,6 @@ void EvaluationBase::evaluation(char* eval_name, bool time_str_open, string path
 }
 
 EvaluationBase::~EvaluationBase() {
-    for (auto o : data) {
-        delete o.key;
-    }
 }
 
 string get_time_str(){

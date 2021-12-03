@@ -43,7 +43,7 @@ void LogarithmicDynamicCuckooFilter::decompose(CuckooFilter* curCF){
 	cuckoo_counter--;
 }
 
-bool LogarithmicDynamicCuckooFilter::insertItem(const char* item){
+bool LogarithmicDynamicCuckooFilter::insertItem(uint64_t item){
 	size_t index;
 	uint32_t fingerprint, prefix = 0;
 	generateIF(item, index, fingerprint, fingerprint_size, single_table_length);
@@ -94,7 +94,7 @@ CuckooFilter* LogarithmicDynamicCuckooFilter::getChild1CF(CuckooFilter* curCF){
 	return curCF->_1_child;
 }
 
-bool LogarithmicDynamicCuckooFilter::queryItem(const char* item){
+bool LogarithmicDynamicCuckooFilter::queryItem(uint64_t item){
 	size_t index, alt_index;
 	uint32_t fingerprint;
 
@@ -115,7 +115,7 @@ bool LogarithmicDynamicCuckooFilter::queryItem(const char* item){
 	return false;
 }
 
-bool LogarithmicDynamicCuckooFilter::deleteItem(const char* item){
+bool LogarithmicDynamicCuckooFilter::deleteItem(uint64_t item){
 	size_t index, alt_index;
 	uint32_t fingerprint;
 
@@ -145,8 +145,8 @@ bool LogarithmicDynamicCuckooFilter::deleteItem(const char* item){
 
 
 
-void LogarithmicDynamicCuckooFilter::generateIF(const char* item, size_t &index, uint32_t &fingerprint, size_t fingerprint_size, size_t single_table_length){
-	uint64_t hash = hash_func1_64bit(item);
+void LogarithmicDynamicCuckooFilter::generateIF(uint64_t item, size_t &index, uint32_t &fingerprint, size_t fingerprint_size, size_t single_table_length){
+	uint64_t hash = hash_func_64bit(item);
 	index = (hash >> 32) % single_table_length;
 	fingerprint = hash & (1u << fingerprint_size) - 1u;
 	fingerprint |= (uint32_t)(fingerprint == 0);

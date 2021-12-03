@@ -16,13 +16,13 @@ public:
 	void init() {
 		F = new LogarithmicDynamicCuckooFilter(max_capacity, 0.01);
 	}
-	bool insert(char *key) {
+	bool insert(uint64_t key) {
 		return F->insertItem(key);
 	}
-	bool query(char *key) {
+	bool query(uint64_t key) {
 		return F->queryItem(key);
 	}
-	bool remove(char *key) {
+	bool remove(uint64_t key) {
 		return F->deleteItem(key);
 	}
 	void debug() {

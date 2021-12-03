@@ -55,7 +55,7 @@ typedef uint8_t counter_t; // Used only in one implementation of scans
 #elif CCF_KEY_SIZE == 8
   typedef uint64_t atom_t;
   typedef uint64_t hash_t;
-  typedef char* keys_t;
+  typedef uint64_t keys_t;
   constexpr uint64_t _N = 4;
 #else
   #error "Only CCF_KEY_SIZE 4 and 8 are currently supported"
