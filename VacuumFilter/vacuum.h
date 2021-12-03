@@ -26,18 +26,18 @@ public:
     uint64_t memory_consumption;
     virtual void init(int _n, int _m, int _max_kick_steps) = 0;
     virtual void clear() = 0;
-    virtual bool insert(char* ele) = 0;
-    virtual bool lookup(char* ele) = 0;
-    virtual bool del(char* ele) = 0;
-    uint64_t position_hash(char* ele);  // hash to range [0, n - 1]
+    virtual bool insert(uint64_t ele) = 0;
+    virtual bool lookup(uint64_t ele) = 0;
+    virtual bool del(uint64_t ele) = 0;
+    uint64_t position_hash(uint64_t ele);  // hash to range [0, n - 1]
     virtual double get_load_factor() { return 0; }
     virtual double get_full_bucket_factor() { return 0; }
     virtual void debug_test() {}
 };
 
 template <typename fp_t, int fp_len>
-uint64_t Filter<fp_t, fp_len>::position_hash(char* ele) {
-    return hash_func1_32bit(ele) % n;
+uint64_t Filter<fp_t, fp_len>::position_hash(uint64_t ele) {
+    return (ele>>32) % n;
 }
 
 template <typename fp_t, int fp_len>
@@ -48,9 +48,9 @@ public:
     int len[4];
     virtual void init(int _n, int _m, int _max_kick_steps);
     void clear();
-    virtual bool insert(char* ele);
-    bool lookup(char* ele);
-    virtual bool del(char* ele);
+    virtual bool insert(uint64_t ele);
+    bool lookup(uint64_t ele);
+    virtual bool del(uint64_t ele);
     double get_load_factor();
     double get_full_bucket_factor();
     double get_bits_per_item();
@@ -67,7 +67,7 @@ public:
     int full_bucket;
     int max_kick_steps;
 
-    fp_t fingerprint(char* ele);  // 32-bit to 'fp_len'-bit fingerprint
+    fp_t fingerprint(uint64_t ele);  // 32-bit to 'fp_len'-bit fingerprint
 
     // interface for semi-sorted bucket
     void get_bucket(int pos, fp_t* store);
@@ -200,9 +200,9 @@ void SemiSortCuckooFilter<fp_t, fp_len>::clear() {
 }
 
 template <typename fp_t, int fp_len>
-fp_t SemiSortCuckooFilter<fp_t, fp_len>::fingerprint(char* ele) {
+fp_t SemiSortCuckooFilter<fp_t, fp_len>::fingerprint(uint64_t ele) {
     fp_t h =
-        hash_func2_32bit(ele) % ((1ull << fp_len) - 1) +
+        (ele & 0x0000ffffu) % ((1ull << fp_len) - 1) +
         1;
     return h;
 }
@@ -375,7 +375,7 @@ int SemiSortCuckooFilter<fp_t, fp_len>::insert_to_bucket(fp_t* store, fp_t fp) {
 }
 
 template <typename fp_t, int fp_len>
-bool SemiSortCuckooFilter<fp_t, fp_len>::insert(char* ele) {
+bool SemiSortCuckooFilter<fp_t, fp_len>::insert(uint64_t ele) {
     return false;
 }
 
@@ -398,7 +398,7 @@ int SemiSortCuckooFilter<fp_t, fp_len>::lookup_in_bucket(int pos, fp_t fp) {
 }
 
 template <typename fp_t, int fp_len>
-bool SemiSortCuckooFilter<fp_t, fp_len>::lookup(char* ele) {
+bool SemiSortCuckooFilter<fp_t, fp_len>::lookup(uint64_t ele) {
     // If ele is positive, return true
     // negative -- return false
 
@@ -434,7 +434,7 @@ int SemiSortCuckooFilter<fp_t, fp_len>::del_in_bucket(int pos, fp_t fp) {
 }
 
 template <typename fp_t, int fp_len>
-bool SemiSortCuckooFilter<fp_t, fp_len>::del(char* ele) {
+bool SemiSortCuckooFilter<fp_t, fp_len>::del(uint64_t ele) {
     // If ele is positive, return true
     // negative -- return false
 
@@ -478,7 +478,7 @@ private:
     }
 
 public:
-    bool insert(char* ele) {
+    bool insert(uint64_t ele) {
         // If insert success return true
         // If insert fail return false
 

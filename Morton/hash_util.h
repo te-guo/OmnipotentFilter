@@ -102,7 +102,7 @@ struct BitMixMurmur {
     #if CCF_KEY_SIZE == 4
       return hashing_func1_32bit(key);
     #else
-      return ((uint64_t)hash_func1_32bit(key))<<32 | hash_func2_32bit(key);
+      return hash_func1_64bit(key);
     #endif
   } 
   inline hash_t operator()(atom_t key) const{

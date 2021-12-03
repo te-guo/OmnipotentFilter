@@ -5,6 +5,17 @@ void set_random_seed(uint64_t seed) {  // A fixed pseudo-random sequence with re
 	_random_seed = seed;
 }
 
+uint64_t hash_func1_64bit(const char* key) {
+	uint64_t hash_value = _random_seed;
+	for (int i=0; key[i]; i++) {
+		hash_value ^= (hash_value * 233 + hash_value/666 + key[i]);
+	}
+	for (int i=0; key[i]; i++) {
+		hash_value ^= (hash_value * 233 + hash_value/666 + key[i]);
+	}
+	return hash_value;
+}
+
 uint32_t hash_func1_32bit(const char* key) {
 	uint64_t hash_value = _random_seed;
 	for (int i=0; key[i]; i++) {
