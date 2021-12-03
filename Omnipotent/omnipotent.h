@@ -6,13 +6,14 @@
 #include <cassert>
 
 #define SLOT_N 8
+#define FINGERPRINT_T uint16_t
+//#define USE_STATISTIC
 
 struct OmnipotentConfig {
 	int fp_len;    //fingerprint length (logically)
 	int SMALL_BUCKET_PRIORITY = 0;
 };
 
-template<class FINGERPRINT_T>
 class Bucket {
 	FINGERPRINT_T a[SLOT_N];
 	uint8_t num;   // number of slots
@@ -48,13 +49,11 @@ public:
 };
 
 typedef uint32_t ui;
-//#define USE_STATISTIC
 
-template<class FINGERPRINT_T>   //FINGERPRINT_T  must be  uint??_t
 class StaticOmnipotentFilter {
 private:
 	OmnipotentConfig config;
-	Bucket<FINGERPRINT_T> *b1, *b2;   //b1 -- small    b2 -- large
+	Bucket *b1, *b2;   //b1 -- small    b2 -- large
 	int BUCKET_N;
 public:
 	//statistic info
@@ -77,8 +76,8 @@ public:
 	StaticOmnipotentFilter(int max_insert_num) { 
 		BUCKET_N = max_insert_num / 3 / SLOT_N;
 		assert((BUCKET_N & (BUCKET_N-1)) == 0);
-		b1 = new Bucket<FINGERPRINT_T> [BUCKET_N];
-		b2 = new Bucket<FINGERPRINT_T> [BUCKET_N<<1];
+		b1 = new Bucket [BUCKET_N];
+		b2 = new Bucket [BUCKET_N<<1];
 		config.fp_len = sizeof(FINGERPRINT_T)*8;
 		#ifdef USE_STATISTIC
 			b1_cnt[0] = BUCKET_N;

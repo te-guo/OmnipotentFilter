@@ -8,10 +8,10 @@ using namespace std;
 typedef long long ll;
 
 class OmnipotentEvaluation : public EvaluationBase {
-	StaticOmnipotentFilter<uint16_t> *F;
+	StaticOmnipotentFilter *F;
 	string get_filter_name() {return "Omnipotent";}
 	void init() {
-		F = new StaticOmnipotentFilter<uint16_t> (max_capacity);
+		F = new StaticOmnipotentFilter (max_capacity);
 	}
 	bool insert(char *key) {
 		return F->insert_key(key);
