@@ -8,11 +8,11 @@
 
 #define SLOT_N 8
 #define FINGERPRINT_T uint16_t
+#define SMALL_BUCKET_PRIORITY 0
 //#define USE_STATISTIC
 
 struct OmnipotentConfig {
 	int fp_len;    //fingerprint length (logically)
-	int SMALL_BUCKET_PRIORITY = 0;
 };
 
 class Bucket {
@@ -114,80 +114,89 @@ private:
 	}
 
 	bool _insert(int p1, FINGERPRINT_T f) {
-		int p2 = get_large_pos(p1, f);
+		int p2;
 		//std::cout<<"insert:"<<p1<<" "<<p2<<" "<<f<<std::endl;
 		
-		if (b1[p1].size() <= b2[p2].size() + config.SMALL_BUCKET_PRIORITY && !b1[p1].is_full()) {
+		if (b1[p1].size()*3<=(used_slots_num>>L)) {
 			b1[p1].insert(f);
 			#ifdef USE_STATISTIC
 				b1_cnt[b1[p1].size()-1]--;
 				b1_cnt[b1[p1].size()]++;
 			#endif
-		} else if (b1[p1].size() > b2[p2].size() + config.SMALL_BUCKET_PRIORITY && !b2[p2].is_full()) {
-			b2[p2].insert(f);
-			#ifdef USE_STATISTIC
-				b2_cnt[b2[p2].size()-1]--;
-				b2_cnt[b2[p2].size()]++;
-			#endif
-		/*
-		int expected = used_slots_num / (BUCKET_N*3) + 1;
-		int sz1 = -1, sz2 = -1;
-		int insert_id = -1;
-		if (f%3==0) {
-			sz1 = b1[p1].size();
-			if (sz1<expected) {
-				insert_id = 1;
-			}
 		} else {
-			sz2 = b2[p2].size();
-			if (sz2<expected) {
-				insert_id = 2;
-			}
-		}
-		if (insert_id == -1) {
-			if (sz1==-1) sz1 = b1[p1].size();
-			if (sz2==-1) sz2 = b2[p2].size();
-		} else {
-			static int hit_num = 0;
-			hit_num++;
-			if (rand()%10000==0) std::cerr << used_slots_num << " " << hit_num << std::endl;
-		}
-		if (insert_id != 2 && (insert_id == 1 || sz1 <= sz2 + config.SMALL_BUCKET_PRIORITY && sz1 < SLOT_N) ) {
-			b1[p1].insert(f);
-			#ifdef USE_STATISTIC
-				b1_cnt[b1[p1].size()-1]--;
-				b1_cnt[b1[p1].size()]++;
-			#endif
-		}
-		else if (insert_id != 1 && (insert_id == 2 || sz1 > sz2 + config.SMALL_BUCKET_PRIORITY && sz2 < SLOT_N) ) {
-			b2[p2].insert(f);
-			#ifdef USE_STATISTIC
-				b2_cnt[b2[p2].size()-1]--;
-				b2_cnt[b2[p2].size()]++;
-			#endif
-			*/
-		} else {
-			int mn = SLOT_N, mnp = -1, mni = -1;
-			FINGERPRINT_T mnf;
-			for (int i=0; i<SLOT_N; i++) {
-				FINGERPRINT_T cf = b1[p1][i];
-				int p = get_large_pos(p1, cf);
-				if (b2[p].size()<mn) {
-					mn = b2[p].size();
-					mnp = p;
-					mni = i;
-					mnf = cf;
+			p2 = get_large_pos(p1, f);
+			if (b1[p1].size() <= b2[p2].size() + SMALL_BUCKET_PRIORITY && !b1[p1].is_full()) {
+				b1[p1].insert(f);
+				#ifdef USE_STATISTIC
+					b1_cnt[b1[p1].size()-1]--;
+					b1_cnt[b1[p1].size()]++;
+				#endif
+			} else if (b1[p1].size() > b2[p2].size() + SMALL_BUCKET_PRIORITY && !b2[p2].is_full()) {
+				b2[p2].insert(f);
+				#ifdef USE_STATISTIC
+					b2_cnt[b2[p2].size()-1]--;
+					b2_cnt[b2[p2].size()]++;
+				#endif
+			/*
+			int expected = used_slots_num / (BUCKET_N*3) + 1;
+			int sz1 = -1, sz2 = -1;
+			int insert_id = -1;
+			if (f%3==0) {
+				sz1 = b1[p1].size();
+				if (sz1<expected) {
+					insert_id = 1;
+				}
+			} else {
+				sz2 = b2[p2].size();
+				if (sz2<expected) {
+					insert_id = 2;
 				}
 			}
-			if (mnp==-1) return false;
-			b2[mnp].insert(mnf);
-			b1[p1].replace(mni, f);
-			
-			#ifdef USE_STATISTIC
-				kick_cnt++;
-				b2_cnt[b2[mnp].size()-1]--;
-				b2_cnt[b2[mnp].size()]++;
-			#endif
+			if (insert_id == -1) {
+				if (sz1==-1) sz1 = b1[p1].size();
+				if (sz2==-1) sz2 = b2[p2].size();
+			} else {
+				static int hit_num = 0;
+				hit_num++;
+				if (rand()%10000==0) std::cerr << used_slots_num << " " << hit_num << std::endl;
+			}
+			if (insert_id != 2 && (insert_id == 1 || sz1 <= sz2 + config.SMALL_BUCKET_PRIORITY && sz1 < SLOT_N) ) {
+				b1[p1].insert(f);
+				#ifdef USE_STATISTIC
+					b1_cnt[b1[p1].size()-1]--;
+					b1_cnt[b1[p1].size()]++;
+				#endif
+			}
+			else if (insert_id != 1 && (insert_id == 2 || sz1 > sz2 + config.SMALL_BUCKET_PRIORITY && sz2 < SLOT_N) ) {
+				b2[p2].insert(f);
+				#ifdef USE_STATISTIC
+					b2_cnt[b2[p2].size()-1]--;
+					b2_cnt[b2[p2].size()]++;
+				#endif
+				*/
+			} else {
+				int mn = SLOT_N, mnp = -1, mni = -1;
+				FINGERPRINT_T mnf;
+				for (int i=0; i<SLOT_N; i++) {
+					FINGERPRINT_T cf = b1[p1][i];
+					int p = get_large_pos(p1, cf);
+					if (b2[p].size()<mn) {
+						mn = b2[p].size();
+						mnp = p;
+						mni = i;
+						mnf = cf;
+					}
+				}
+				if (mnp==-1) return false;
+				b2[mnp].insert(mnf);
+				b1[p1].replace(mni, f);
+				
+				#ifdef USE_STATISTIC
+					kick_cnt++;
+					b2_cnt[b2[mnp].size()-1]--;
+					b2_cnt[b2[mnp].size()]++;
+				#endif
+			}
 		}
 		used_slots_num++;
 		return true;
@@ -210,31 +219,31 @@ private:
 public:
 	bool insert_key(uint64_t key) {
 		uint64_t hash = hash_func_64bit(key);
-		return _insert((hash >> 32) % BUCKET_N, hash & 0x0000ffffu);
+		return _insert((hash >> 32) & (BUCKET_N - 1), hash & 0x0000ffffu);
 	}
 
 	bool query_key(uint64_t key) {
 		uint64_t hash = hash_func1_64bit(key);
-		return _query((hash >> 32) % BUCKET_N, hash & 0x0000ffffu);
+		return _query((hash >> 32) & (BUCKET_N - 1), hash & 0x0000ffffu);
 	}
 
 	bool remove_key(uint64_t key) {
 		uint64_t hash = hash_func1_64bit(key);
-		return _remove((hash >> 32) % BUCKET_N, hash & 0x0000ffffu);
+		return _remove((hash >> 32) & (BUCKET_N - 1), hash & 0x0000ffffu);
 	}
 
 	bool insert_key(char *key) {
 		uint64_t hash = hash_func1_64bit(key);
-		return _insert((hash >> 32) % BUCKET_N, hash & 0x0000ffffu);
+		return _insert((hash >> 32) & (BUCKET_N - 1), hash & 0x0000ffffu);
 	}
 
 	bool query_key(char *key) {
 		uint64_t hash = hash_func1_64bit(key);
-		return _query((hash >> 32) % BUCKET_N, hash & 0x0000ffffu);
+		return _query((hash >> 32) & (BUCKET_N - 1), hash & 0x0000ffffu);
 	}
 
 	bool remove_key(char *key) {
 		uint64_t hash = hash_func1_64bit(key);
-		return _remove((hash >> 32) % BUCKET_N, hash & 0x0000ffffu);
+		return _remove((hash >> 32) & (BUCKET_N - 1), hash & 0x0000ffffu);
 	}
 };
