@@ -184,6 +184,9 @@ bool EvaluationBase::query(uint64_t key) {
 bool EvaluationBase::remove(uint64_t key) {
     assert(false);
 }
+size_t EvaluationBase::actual_size() {
+    assert(false);
+}
 void EvaluationBase::debug() {
 }
 

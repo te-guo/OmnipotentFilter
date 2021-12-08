@@ -246,4 +246,8 @@ public:
 		uint64_t hash = hash_func1_64bit(key);
 		return _remove((hash >> 32) & (BUCKET_N - 1), hash & 0x0000ffffu);
 	}
+
+	double memory_consumption_in_bytes(){
+		return 3 * BUCKET_N * sizeof(Bucket);
+	}
 };

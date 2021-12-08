@@ -178,6 +178,10 @@ float LogarithmicDynamicCuckooFilter::size_in_mb(){
 	return fingerprint_size * 4.0 * single_table_length * cuckoo_counter / 8 / 1024 / 1024;
 }
 
+size_t LogarithmicDynamicCuckooFilter::size_in_bytes(){
+	return fingerprint_size * 4 * single_table_length * cuckoo_counter / 8;
+}
+
 uint64_t LogarithmicDynamicCuckooFilter::upperpower2(uint64_t x) {
   x--;
   x |= x >> 1;

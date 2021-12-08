@@ -22,6 +22,9 @@ class VacuumEvaluation : public EvaluationBase {
 	bool remove(uint64_t key) {
 		return F.del(hash_func1_64bit(key));
 	}
+	size_t actual_size(){
+		return F.memory_consumption;
+	}
 	void debug() {
 		F.debug_test();
 	}

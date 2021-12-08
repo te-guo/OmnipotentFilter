@@ -22,6 +22,9 @@ class OmnipotentEvaluation : public EvaluationBase {
 	bool remove(uint64_t key) {
 		return F->remove_key(key);
 	}
+	size_t actual_size(){
+		return F->memory_consumption_in_bytes();
+	}
 	void debug() {
 //		F.show_statistic();
 	}

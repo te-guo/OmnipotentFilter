@@ -59,6 +59,7 @@ public:
 	//get info of DCF
 	int getFingerprintSize();
 	float size_in_mb();
+	size_t size_in_bytes();
 
 	//extra function to make sure the table length is the power of 2
 	uint64_t upperpower2(uint64_t x);

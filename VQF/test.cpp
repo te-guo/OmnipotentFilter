@@ -24,6 +24,9 @@ class VqfEvaluation : public EvaluationBase {
 	bool remove(uint64_t key) {
 		return vqf_remove(F, hash_func1_64bit(key));
 	}
+	size_t actual_size(){
+		return F->metadata.total_size_in_bytes;
+	}
 	void debug() {
 	}
 	vqf_filter* F;

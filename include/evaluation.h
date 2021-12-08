@@ -67,6 +67,7 @@ public:
 	virtual bool insert(uint64_t key);
 	virtual bool query(uint64_t key);
 	virtual bool remove(uint64_t key);
+	virtual size_t actual_size();
 	virtual void debug();
 	void prepare(string opt = "load_config", string config_path = "../eval_config.txt");
 	void evaluation(char* eval_name = "", bool time_str_open = true, string path="../log");

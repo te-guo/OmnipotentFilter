@@ -25,6 +25,9 @@ public:
 	bool remove(uint64_t key) {
 		return F->deleteItem(key);
 	}
+	size_t actual_size(){
+		return F->size_in_bytes();
+	}
 	void debug() {
 	}
 	LogarithmicDynamicCuckooFilter* F;
