@@ -40,7 +40,7 @@ struct Status {
 	int id;
 	int fp;
 	double t;
-	size_t size;
+	long size;
 };
 typedef vector<Operation> Data;
 

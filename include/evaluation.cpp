@@ -147,8 +147,8 @@ void EvaluationBase::_print_results() {
             int cur_num = i-last_i;
             double cur_t = checkpoints[it].t-last_time;
             double cur_tp = cur_num / cur_t;
-            size_t key_num = op_num[0] - op_num[2];
-            size_t last_key_num = last_op_num[0] - last_op_num[2];
+            long key_num = op_num[0] - op_num[2];
+            long last_key_num = last_op_num[0] - last_op_num[2];
             double lf = 1.0 * max(key_num, last_key_num) / max_capacity;
             tot_t[type] += cur_t;
             tot_num[type] += cur_num;
