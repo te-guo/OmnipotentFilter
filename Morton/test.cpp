@@ -23,6 +23,9 @@ class VqfEvaluation : public EvaluationBase {
 	bool remove(uint64_t key) {
 		return F->delete_item(key);
 	}
+	size_t actual_size(){
+		return 0; ///// TODO /////
+	}
 	void debug() {
 	}
 	CompressedCuckoo::Morton3_12 *F;

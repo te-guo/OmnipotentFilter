@@ -44,7 +44,7 @@ for file in sys.argv[2:]:
 
 fig = plt.figure()
 
-subfig = fig.add_subplot(2, 2, 1)
+subfig = fig.add_subplot(2, 3, 1)
 subfig.set_title('Insert Throughput', fontsize=8)
 subfig.set_xlabel('Load factor', fontsize=5)
 subfig.set_ylabel('Throughput (M/s)', fontsize=5)
@@ -58,7 +58,7 @@ subfig.set_ylim(ymin=0)
 subfig.legend(fontsize=5)
 
 
-subfig = fig.add_subplot(2, 2, 2)
+subfig = fig.add_subplot(2, 3, 2)
 subfig.set_title('Query Throughput', fontsize=8)
 subfig.set_xlabel('Load factor', fontsize=5)
 subfig.set_ylabel('Throughput (M/s)', fontsize=5)
@@ -72,7 +72,7 @@ subfig.set_ylim(ymin=0)
 subfig.legend(fontsize=5)
 
 
-subfig = fig.add_subplot(2, 2, 3)
+subfig = fig.add_subplot(2, 3, 3)
 subfig.set_title('Remove Throughput', fontsize=8)
 subfig.set_xlabel('Load factor', fontsize=5)
 subfig.set_ylabel('Throughput (M/s)', fontsize=5)
@@ -86,7 +86,7 @@ subfig.set_ylim(ymin=0)
 subfig.legend(fontsize=5)
 
 
-subfig = fig.add_subplot(2, 2, 4)
+subfig = fig.add_subplot(2, 3, 4)
 subfig.set_title('FPR', fontsize=8)
 subfig.set_xlabel('Load factor', fontsize=5)
 subfig.set_ylabel('FPR (%)', fontsize=5)
@@ -96,6 +96,22 @@ for i in range(n):
         continue
     x = [status['Load_factor'] for status in query[i]]
     y = [status['FPR']*100 for status in query[i]]
+    subfig.plot(x, y, color = colors[i], linewidth = 0.8, linestyle='-', label=names[i])
+subfig.set_xlim(xmin=0,xmax=1)
+subfig.set_ylim(ymin=0)
+subfig.legend(fontsize=5)
+
+
+subfig = fig.add_subplot(2, 3, 5)
+subfig.set_title('Bit Per Key', fontsize=8)
+subfig.set_xlabel('Load factor', fontsize=5)
+subfig.set_ylabel('Bit/Key', fontsize=5)
+subfig.tick_params(axis='both', labelsize=5)
+for i in range(n):
+    if names[i] == 'Morton':
+        continue
+    x = [status['Load_factor'] for status in insert[i]]
+    y = [status['BPK'] for status in insert[i]]
     subfig.plot(x, y, color = colors[i], linewidth = 0.8, linestyle='-', label=names[i])
 subfig.set_xlim(xmin=0,xmax=1)
 subfig.set_ylim(ymin=0)

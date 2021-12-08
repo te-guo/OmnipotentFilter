@@ -112,7 +112,7 @@ void EvaluationBase::_evaluation(string eval_name) {
                 fail = true, data[i].checkpoint = true;
         }
         if (data[i].checkpoint) {
-            checkpoints.push_back((Status){i, point_false_positive, T.get()});
+            checkpoints.push_back((Status){i, point_false_positive, T.get(), actual_size()});
             false_positive += point_false_positive;
             point_false_positive = 0;
             debug();
@@ -147,17 +147,21 @@ void EvaluationBase::_print_results() {
             int cur_num = i-last_i;
             double cur_t = checkpoints[it].t-last_time;
             double cur_tp = cur_num / cur_t;
-            double lf = 1.0*max(op_num[0] - op_num[2], last_op_num[0] - last_op_num[2])/max_capacity;
+            size_t key_num = op_num[0] - op_num[2];
+            size_t last_key_num = last_op_num[0] - last_op_num[2];
+            double lf = 1.0 * max(key_num, last_key_num) / max_capacity;
             tot_t[type] += cur_t;
             tot_num[type] += cur_num;
             double avg_tp = tot_num[type] / tot_t[type];
+            double bpk = key_num != 0 ? (double)checkpoints[it].size * 8 / key_num : 0;
 
             if(type != string("Query"))
-                printf("Load_factor = %.4lf,  Throughput = %.2lf,  AVG_throughput = %.2lf\n",
-                        lf, cur_tp, avg_tp);
+                printf("Load_factor = %.4lf,  Throughput = %.2lf,  AVG_throughput = %.2lf, BPK = %.2lf\n",
+                        lf, cur_tp, avg_tp, bpk);
             else
-                printf("Load_factor = %.4lf,  Throughput = %.2lf,  AVG_throughput = %.2lf,  FPR = %.8lf\n",
-                        lf, cur_tp, avg_tp, (double)checkpoints[it].fp/(op_num[1] - last_op_num[1]));
+                printf("Load_factor = %.4lf,  Throughput = %.2lf,  AVG_throughput = %.2lf, BPK = %.2lf"
+                ", FPR = %.8lf\n",
+                        lf, cur_tp, avg_tp, bpk, (double)checkpoints[it].fp/(op_num[1] - last_op_num[1]));
             
             last_i = i;
             last_time = checkpoints[it].t;
