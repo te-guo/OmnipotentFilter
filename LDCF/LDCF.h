@@ -32,6 +32,7 @@ public:
 	//record the items inside DCF
 	int counter;
 	int cuckoo_counter;
+	size_t actual_size_counter;
 
 	// the link tree strutcture of building blocks CF1, CF2, ...
 
@@ -59,7 +60,7 @@ public:
 	//get info of DCF
 	int getFingerprintSize();
 	float size_in_mb();
-	size_t size_in_bytes();
+	size_t actual_size_in_bytes();
 
 	//extra function to make sure the table length is the power of 2
 	uint64_t upperpower2(uint64_t x);

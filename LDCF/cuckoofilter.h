@@ -60,6 +60,7 @@ public:
 	//read from bucket & write into bucket
 	uint32_t read(const size_t index, const size_t pos);
 	void write(const size_t index, const size_t pos, const uint32_t fingerprint);
+	size_t actual_size_in_bytes();
 
 };
 

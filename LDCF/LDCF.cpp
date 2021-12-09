@@ -18,9 +18,10 @@ LogarithmicDynamicCuckooFilter::LogarithmicDynamicCuckooFilter(const size_t item
 	fingerprint_size_double = ceil(log(8.0/single_false_positive)/log(2));
 	fingerprint_size = round(fingerprint_size_double);
 	counter = 0;
-	cuckoo_counter = 1;
 
+	cuckoo_counter = 1;
 	root = new CuckooFilter(single_table_length, fingerprint_size, single_capacity, 0);
+	actual_size_counter = root->actual_size_in_bytes();
 }
 
 LogarithmicDynamicCuckooFilter::~LogarithmicDynamicCuckooFilter(){
@@ -39,8 +40,9 @@ void LogarithmicDynamicCuckooFilter::decompose(CuckooFilter* curCF){
 				else
 					curCF->_1_child->write(index, slot, MaskFP(fingerprint, curCF->_1_child->level));
 		}
-	curCF->invalidate();
 	cuckoo_counter--;
+	actual_size_counter -= curCF->actual_size_in_bytes();
+	curCF->invalidate();
 }
 
 bool LogarithmicDynamicCuckooFilter::insertItem(uint64_t item){
@@ -82,6 +84,7 @@ CuckooFilter* LogarithmicDynamicCuckooFilter::getChild0CF(CuckooFilter* curCF){
 	if(curCF->_0_child == NULL){
 		cuckoo_counter++;
 		curCF->_0_child = new CuckooFilter(single_table_length, fingerprint_size, single_capacity, curCF->level + 1);
+		actual_size_counter += curCF->_0_child->actual_size_in_bytes();
 	}
 	return curCF->_0_child;
 }
@@ -90,6 +93,7 @@ CuckooFilter* LogarithmicDynamicCuckooFilter::getChild1CF(CuckooFilter* curCF){
 	if(curCF->_1_child == NULL){
 		cuckoo_counter++;
 		curCF->_1_child = new CuckooFilter(single_table_length, fingerprint_size, single_capacity, curCF->level + 1);
+		actual_size_counter += curCF->_1_child->actual_size_in_bytes();
 	}
 	return curCF->_1_child;
 }
@@ -178,8 +182,8 @@ float LogarithmicDynamicCuckooFilter::size_in_mb(){
 	return fingerprint_size * 4.0 * single_table_length * cuckoo_counter / 8 / 1024 / 1024;
 }
 
-size_t LogarithmicDynamicCuckooFilter::size_in_bytes(){
-	return fingerprint_size * 4 * single_table_length * cuckoo_counter / 8;
+size_t LogarithmicDynamicCuckooFilter::actual_size_in_bytes(){
+	return actual_size_counter;
 }
 
 uint64_t LogarithmicDynamicCuckooFilter::upperpower2(uint64_t x) {

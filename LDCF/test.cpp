@@ -26,7 +26,7 @@ public:
 		return F->deleteItem(key);
 	}
 	size_t actual_size(){
-		return F->size_in_bytes();
+		return F->actual_size_in_bytes();
 	}
 	void debug() {
 	}

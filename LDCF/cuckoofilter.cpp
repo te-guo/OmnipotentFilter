@@ -184,6 +184,9 @@ void CuckooFilter::write(size_t index, size_t pos, uint32_t fingerprint){
 	}
 }
 
+size_t CuckooFilter::actual_size_in_bytes(){
+	return bytes_per_bucket * single_table_length;
+}
 
 
 
