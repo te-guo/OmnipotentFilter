@@ -513,7 +513,7 @@ static inline bool remove_tags(vqf_filter * restrict filter, uint64_t tag,
       uint64_t *block_md = blocks[block_index / QUQU_BUCKETS_PER_BLOCK].md;
       remove_md(block_md, remove_index);
 #elif TAG_BITS == 16
-      remove_index = remove_index + offset - sizeof(uint64_t);
+      remove_index = remove_index + offset - sizeof(uint64_t) / 2;
       uint64_t *block_md = &blocks[block_index / QUQU_BUCKETS_PER_BLOCK].md;
       remove_md(block_md, remove_index);
 #endif
