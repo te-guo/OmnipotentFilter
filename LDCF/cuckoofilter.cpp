@@ -3,7 +3,7 @@
 
 CuckooFilter::CuckooFilter(const size_t table_length, const size_t fingerprint_bits, const int single_capacity, int curlevel){
 	fingerprint_size = fingerprint_bits - curlevel;
-	bytes_per_bucket = (fingerprint_size*4+7)>>3;
+	bytes_per_bucket = (fingerprint_size * 4 + 15) >> 4 << 1;
 	single_table_length = table_length;
 	counter = 0;
 	capacity = single_capacity;
@@ -13,17 +13,13 @@ CuckooFilter::CuckooFilter(const size_t table_length, const size_t fingerprint_b
 	level = curlevel;
 	mask = (1ULL << fingerprint_size) - 1;
 
-	bucket = new Bucket[single_table_length];
-	for(size_t i = 0; i<single_table_length; i++){
-		bucket[i].bit_array = new char[bytes_per_bucket];
-		memset(bucket[i].bit_array, 0, bytes_per_bucket);
-	}
+	bucket = new char[single_table_length * bytes_per_bucket]();
 	valid = true;
 
 }
 
 CuckooFilter::~CuckooFilter(){
-	if(valid)delete[] bucket;
+	invalidate();
 	delete _0_child;
 	delete _1_child;
 }
@@ -32,8 +28,10 @@ bool CuckooFilter::is_valid(){
 	return valid;
 }
 void CuckooFilter::invalidate(){
-	valid = false;
-	delete[] bucket;
+	if(valid){
+		delete[] bucket;
+		valid = false;
+	}
 }
 
 bool CuckooFilter::insertItem(size_t index, uint32_t fingerprint, const uint32_t prefix, Victim &victim){
@@ -76,7 +74,7 @@ bool CuckooFilter::insertImpl(const size_t index, const uint32_t fingerprint, co
 }
 
 bool CuckooFilter::queryImpl(const size_t index, const uint32_t fingerprint){
-	const char* p = bucket[index].bit_array;
+	const char* p = bucket + index * bytes_per_bucket;
 	uint64_t bits = *(uint64_t*)p;
 	if(fingerprint_size <= 4)
 		return hasvalue4(bits, fingerprint);
@@ -110,7 +108,7 @@ void CuckooFilter::generateA(size_t index, uint32_t fingerprint, uint32_t prefix
 
 
 uint32_t CuckooFilter::read(size_t index, size_t pos){
-	const char* p = bucket[index].bit_array;
+	const char* p = bucket + index * bytes_per_bucket;
 	uint32_t fingerprint;
 
 	if(fingerprint_size <= 4){
@@ -152,7 +150,7 @@ uint32_t CuckooFilter::read(size_t index, size_t pos){
 }
 
 void CuckooFilter::write(size_t index, size_t pos, uint32_t fingerprint){
-	char* p = bucket[index].bit_array;
+	char* p = bucket + index * bytes_per_bucket;
 	if(fingerprint_size <= 4){
 		p += (pos>>1);
 		if((pos & 1) == 0){
@@ -185,7 +183,7 @@ void CuckooFilter::write(size_t index, size_t pos, uint32_t fingerprint){
 }
 
 size_t CuckooFilter::actual_size_in_bytes(){
-	return bytes_per_bucket * single_table_length;
+	return sizeof(this) + single_table_length * bytes_per_bucket * sizeof(char);
 }
 
 

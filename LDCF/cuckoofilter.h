@@ -15,10 +15,6 @@ typedef struct {
 	uint32_t fingerprint;
 } Victim;
 
-typedef struct{
-	char* bit_array;
-} Bucket;
-
 
 
 class CuckooFilter{
@@ -29,7 +25,7 @@ private:
 	size_t fingerprint_size;
 	size_t bytes_per_bucket;
 
-	Bucket* bucket;
+	char* bucket;
 
 	uint32_t mask;
 	bool valid;
