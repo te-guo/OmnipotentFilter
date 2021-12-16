@@ -17,10 +17,6 @@ private:
 
 	int single_table_length;
 
-	double false_positive;
-	double single_false_positive;
-
-	double fingerprint_size_double;
 	int fingerprint_size;
 
 	Victim victim;
@@ -37,7 +33,7 @@ public:
 	// the link tree strutcture of building blocks CF1, CF2, ...
 
 	//construction & distruction functions
-	LogarithmicDynamicCuckooFilter(const size_t capacity, const double false_positive, const size_t exp_block_num = 6);
+	LogarithmicDynamicCuckooFilter(const size_t capacity, const size_t fingerprint_length, const size_t exp_block_num = 6);
 	~LogarithmicDynamicCuckooFilter();
 
 	void decompose(CuckooFilter* curCF);

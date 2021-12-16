@@ -5,20 +5,16 @@
 using namespace std;
 
 
-LogarithmicDynamicCuckooFilter::LogarithmicDynamicCuckooFilter(const size_t item_num, const double fp, const size_t exp_block_num){
+LogarithmicDynamicCuckooFilter::LogarithmicDynamicCuckooFilter(const size_t item_num, const size_t fingerprint_length, const size_t exp_block_num){
 
 	capacity = item_num;
 
 	single_table_length = upperpower2(capacity/4.0/exp_block_num);
-	single_capacity = single_table_length*0.9375*4;//s=6 1920 s=12 960 s=24 480 s=48 240 s=96 120
+	single_capacity = single_table_length * 4 * 0.9375;
 
-	false_positive = fp;
-	single_false_positive = 1-pow(1.0-false_positive, ((double)single_capacity/capacity));
+	fingerprint_size = fingerprint_length;
 
-	fingerprint_size_double = ceil(log(8.0/single_false_positive)/log(2));
-	fingerprint_size = round(fingerprint_size_double);
 	counter = 0;
-
 	cuckoo_counter = 1;
 	root = new CuckooFilter(single_table_length, fingerprint_size, single_capacity, 0);
 	actual_size_counter = root->actual_size_in_bytes();

@@ -14,7 +14,7 @@ public:
 		return "LDCF";
 	}
 	void init() {
-		F = new LogarithmicDynamicCuckooFilter(max_capacity, 0.01);
+		F = new LogarithmicDynamicCuckooFilter(max_capacity, 16);
 	}
 	bool insert(uint64_t key) {
 		return F->insertItem(key);
