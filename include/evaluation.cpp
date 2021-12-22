@@ -198,11 +198,9 @@ size_t EvaluationBase::actual_size() {
 void EvaluationBase::debug() {
 }
 
-int EvaluationBase::argu_int(char* argu){
-    return std::atoi(arguments[argu].c_str());
-}
 // argv will overwrite the arguments assigned by eval_config
-void EvaluationBase::_load_config(string opt, string config_path) {
+std::map<std::string, std::string> load_config(string opt, string config_path) {
+    std::map<std::string, std::string> arguments;
     if (opt == "load_config") {
         ifstream in(config_path);
         assert(in.is_open());
@@ -213,6 +211,7 @@ void EvaluationBase::_load_config(string opt, string config_path) {
     } else {
         assert(false);
     }
+    return arguments;
 }
 void EvaluationBase::_generate_input(){
     max_capacity = 1 << argu_int("n");
@@ -223,13 +222,17 @@ void EvaluationBase::_generate_input(){
 }
 
 void EvaluationBase::evaluation(int argc, char* argv[], string path) {
-    _load_config();
+    arguments = load_config();
     for(int i = 2; i < argc; i += 2)
         arguments[std::string(argv[i-1] + 1)] = argv[i];
     if(!arguments.count("name"))
         arguments["name"] = get_time_str();
+
     log_dir = path + "/";
-    log_path = log_dir + arguments["name"] + " " + get_filter_name() + ".txt";
+    log_path = log_dir + arguments["name"]
+        + "_" + get_filter_name()
+        + (arguments.count("round") ? "#" + arguments["round"] : "")
+        + ".txt";
     open_log();
 
     cout << get_filter_name() << endl;

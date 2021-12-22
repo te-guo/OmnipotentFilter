@@ -54,8 +54,6 @@ class EvaluationBase {
 	string log_dir, log_path;
 	std::map<std::string, std::string> arguments;
 	void open_log();
-	int argu_int(char* argu);
-	void _load_config(string opt = "load_config", string config_path = "../default_config.txt");
 	void _generate_input();
 	void _precompute_data();
 	void _evaluation(string eval_name);
@@ -81,3 +79,5 @@ public:
 };
 
 string get_time_str();
+std::map<std::string, std::string> load_config(string opt = "load_config", string config_path = "../default_config.txt");
+#define argu_int(argu) std::atoi(arguments[argu].c_str())

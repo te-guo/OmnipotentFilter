@@ -2,6 +2,8 @@
 #include<cstdio>
 #include<chrono>
 #include<vector>
+#include<map>
+#include<string>
 #include "evaluation.h"
 using namespace std;
 typedef long long ll;
@@ -9,6 +11,7 @@ typedef long long ll;
 int main(int argc, char* argv[]) {
 	vector<string> folders = {"Omnipotent", "VacuumFilter", "VQF", "LDCF", "Morton"};
 	string eval_name = argc >= 2 ? string(argv[1]) : get_time_str();
+	std::map<std::string, std::string> arguments = load_config();
 	string options = " -name " + eval_name;
 	
 	{
@@ -28,17 +31,18 @@ int main(int argc, char* argv[]) {
 		assert(system((cmd + " && make").c_str()) == 0);
 	}
 
-	for (auto f : folders) {
+	for (auto f : folders) for(int i = 0; i < argu_int("round"); i++){
 		string cmd = "";
 		cmd += "cd .. && cd " + f;
-		assert(system((cmd + " && ./test" + options).c_str()) == 0);
+		assert(system((cmd + " && ./test" + options + " -round " + std::to_string(i)).c_str()) == 0);
 	}
 	{
-		string cmd = "";
-		cmd += "python3 plot.py";
+		string cmd = "python3 plot.py";
+		cmd += " 0";
 		cmd += " " + eval_name;
+		cmd += " " + arguments["round"];
 		for (auto f : folders)
-			cmd += " ../log/" + eval_name + "\\ " + f + ".txt";
+			cmd += " " + f;
 		system(cmd.c_str());
 	}
 

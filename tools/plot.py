@@ -1,45 +1,72 @@
 ###################
-# $ python3 plot.py [output_name] ../log/[input_1] ../log/[input_2] ../log/[input_3]
+# $ python3 plot.py [plot_type] [result_name] [rounds] [filter_name_1] [filter_name_2] [filter_name_3]
 ###################
 import sys
 import re
 import matplotlib.pyplot as plt
 
 n = 0
+plot_type = int(sys.argv[1])
+result_name = sys.argv[2]
+rounds = int(sys.argv[3])
 colors = ['red', 'green', 'blue', 'black', 'purple']
 names = []
 insert = []
 query = []
 remove = []
 
-for file in sys.argv[2:]:
-    f = open(file, 'r')
-    names.append(f.readline().split()[0])
-    insert.append([])
-    query.append([])
-    remove.append([])
+for filter in sys.argv[4:]:
+    n += 1
+    lines = []
+    for id in range(rounds):
+        f = open("../log/" + result_name + "_" + filter + "#" + str(id) + ".txt", 'r')
+        if id == 0:
+            names.append(f.readline().split()[0])
+            insert.append([])
+            query.append([])
+            remove.append([])
+        while True:
+            line = f.readline().split()
+            if(line[0] == 'Procedure:'):
+                break
+        lines.append([])
+        while True:
+            line = re.split("[\s\n=,][\s\n=,]*", f.readline())
+            if len(line) <= 1:
+                break
+            else:
+                lines[-1].append(line)
+        f.close()
+    line_cnt = 0
     while True:
-        line = f.readline().split()
-        if(line[0] == 'Procedure:'):
-            break
-    while True:
-        line = re.split("[\s\n=,][\s\n=,]*", f.readline())
-        if len(line) <= 1:
-            break
+        line_type = None
         status = {}
-        for i in range(1, len(line)-1, 2):
-            status[line[i]] = float(line[i+1])
-        if line[0][0] == 'I':
+        empty = True
+        for r in range(len(lines)):
+            if line_cnt < len(lines[r]):
+                line = lines[r][line_cnt]
+                if empty:
+                    line_type = line[0]
+                    for i in range(1, len(line)-1, 2):
+                        status[line[i]] = (float(line[i+1]), 1)
+                    empty = False
+                else:
+                    for i in range(1, len(line)-1, 2):
+                        status[line[i]] = (status[line[i]][0] + float(line[i+1]), status[line[i]][1] + 1)
+        if empty:
+            break
+        for key in status:
+            status[key] = status[key][0] / status[key][1]
+        if line_type[0] == 'I':
             if len(insert[-1]) < 1 or status['Load_factor'] > insert[-1][-1]['Load_factor']:
                 insert[-1].append(status)
-        elif line[0][0] == 'Q':
+        elif line_type[0] == 'Q':
             if len(query[-1]) < 1 or status['Load_factor'] > query[-1][-1]['Load_factor']:
                 query[-1].append(status)
         else:
             if len(remove[-1]) < 1 or status['Load_factor'] > remove[-1][-1]['Load_factor']:
                 remove[-1].append(status)
-    f.close()
-    n += 1
+        line_cnt = line_cnt + 1
 
 
 fig = plt.figure()
@@ -117,4 +144,4 @@ subfig.legend(fontsize=5)
 
 #fig.suptitle('Result', fontsize=9)
 fig.tight_layout(pad=0.7, w_pad=0.7, h_pad=0.7)
-fig.savefig('../log/' + sys.argv[1] + '.png', dpi=1000)
+fig.savefig('../log/' + result_name + '.png', dpi=1000)
