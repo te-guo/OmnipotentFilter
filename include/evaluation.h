@@ -52,7 +52,11 @@ public:
 
 class EvaluationBase {
 	string log_dir, log_path;
+	std::map<std::string, std::string> arguments;
 	void open_log();
+	int argu_int(char* argu);
+	void _load_config(string opt = "load_config", string config_path = "../default_config.txt");
+	void _generate_input();
 	void _precompute_data();
 	void _evaluation(string eval_name);
 	void _print_results();
@@ -70,8 +74,7 @@ public:
 	virtual bool remove(uint64_t key);
 	virtual size_t actual_size();
 	virtual void debug();
-	void prepare(string opt = "load_config", string config_path = "../eval_config.txt");
-	void evaluation(char* eval_name = "", bool time_str_open = true, string path="../log");
+	void evaluation(int argc, char* argv[], string path="../log");
 
 	~EvaluationBase();
 

@@ -25,6 +25,7 @@ void DataGenerator::gen_random_data(Data &data, int n, bool no_query, bool no_re
         x = 1ll*x*3%mod;
     }
     int seg = 20;
+    vector<int> to_remove;
     for(int i=0; i<seg; i++){
         int j=(long long)n*i/seg, k=(long long)n*(i+1)/seg;
         for(int l=j; l<k; ++l)
@@ -38,17 +39,19 @@ void DataGenerator::gen_random_data(Data &data, int n, bool no_query, bool no_re
             }
         }
         if(!no_remove){
-            vector<int> vec;
-            for(int l=min(k/3, 3000); l; --l){
-                int x=rand()%k;
+            to_remove.resize(k-j);
+            for(int l=0; l < k-j; l++){
+                int x = i ? rand()%k : l;
                 while(!alive[x])x=rand()%k;
                 alive[x] = false;
-                vec.push_back(x);
-                data.push_back(Operation(2, a[x], 0, l==1));
+                to_remove[l] = x;
+                data.push_back(Operation(2, a[x], 0, l == k-j-1));
             }
-            random_shuffle(vec.begin(),vec.end());
-            for(int l=0; l<vec.size(); ++l)
-                data.push_back(Operation(0, a[vec[l]], 0, l==vec.size()-1));
+            random_shuffle(to_remove.begin(),to_remove.end());
+            for(int l=0; l<to_remove.size(); ++l){
+                data.push_back(Operation(0, a[to_remove[l]], 0, l==to_remove.size()-1));
+                alive[to_remove[l]] = true;
+            }
         }
     }
     cerr << "generated " << data.size() << " operations." << endl;
@@ -85,10 +88,11 @@ void EvaluationBase::_precompute_data() {
         printf(", #yes/#query = %.3lf", 1.0*query_ans_cnt[0]/op_tot[1]);
     }
     puts("");
-    puts("Procedure:");
 }
 
 void EvaluationBase::_evaluation(string eval_name) {
+    init();
+    puts("Procedure:");
     assert(max_capacity > 100);
 
     int false_positive = 0, point_false_positive = 0;
@@ -194,43 +198,47 @@ size_t EvaluationBase::actual_size() {
 void EvaluationBase::debug() {
 }
 
-// get data and evaluation config (e.g. requirements) prepared 
-void EvaluationBase::prepare(string opt, string config_path) {
+int EvaluationBase::argu_int(char* argu){
+    return std::atoi(arguments[argu].c_str());
+}
+// argv will overwrite the arguments assigned by eval_config
+void EvaluationBase::_load_config(string opt, string config_path) {
     if (opt == "load_config") {
         ifstream in(config_path);
         assert(in.is_open());
-        int n, no_query, no_remove;
-        in>>n >> no_query >> no_remove; 
-        max_capacity = 1 << n;
-        if (get_filter_name()=="Omnipotent") {
-            max_capacity += max_capacity / 2;
-        }
-        data_generator.gen_random_data(data, max_capacity, no_query, no_remove);
+        std::string argu, value;
+        while(in >> argu >> value)
+            arguments[argu] = value;
         in.close();
     } else {
         assert(false);
     }
 }
+void EvaluationBase::_generate_input(){
+    max_capacity = 1 << argu_int("n");
+    if (get_filter_name()=="Omnipotent") {
+        max_capacity += max_capacity / 2;
+    }
+    data_generator.gen_random_data(data, max_capacity, argu_int("no_query"), argu_int("no_remove"));
+}
 
-void EvaluationBase::evaluation(char* eval_name, bool time_str_open, string path) {
-    string time_str = get_time_str();
+void EvaluationBase::evaluation(int argc, char* argv[], string path) {
+    _load_config();
+    for(int i = 2; i < argc; i += 2)
+        arguments[std::string(argv[i-1] + 1)] = argv[i];
+    if(!arguments.count("name"))
+        arguments["name"] = get_time_str();
     log_dir = path + "/";
-    log_path = log_dir;
-    if(eval_name != string(""))
-        log_path += string(eval_name) + " ";
-    log_path += get_filter_name();
-    if(time_str_open)
-        log_path +=" " + time_str;
-    log_path += ".txt";
+    log_path = log_dir + arguments["name"] + " " + get_filter_name() + ".txt";
     open_log();
-    
+
     cout << get_filter_name() << endl;
-    cout << "Evaluating [" << get_filter_name() << "] in evaluation [" << eval_name << "]" << endl;
-    cerr << "Evaluating [" << get_filter_name() << "] in evaluation [" << eval_name << "]" << endl;
-    
-    init();
+    cout << "Evaluating [" << get_filter_name() << "] in evaluation [" << arguments["name"] << "]" << endl;
+    cerr << "Evaluating [" << get_filter_name() << "] in evaluation [" << arguments["name"] << "]" << endl;
+
+    _generate_input();
     _precompute_data();
-    _evaluation(eval_name);
+    _evaluation(arguments["name"]);
     _print_results();
 }
 

@@ -31,10 +31,6 @@ class VacuumEvaluation : public EvaluationBase {
 	VacuumFilter<uint16_t, 16> F;
 } E;
 int main(int argc, char* argv[]) {
-	E.prepare();
-	if(argc >= 2)
-		E.evaluation(argv[1], false);
-	else
-		E.evaluation();
+	E.evaluation(argc, argv);
 	return 0;
 }

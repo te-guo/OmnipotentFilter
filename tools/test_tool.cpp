@@ -9,7 +9,7 @@ typedef long long ll;
 int main(int argc, char* argv[]) {
 	vector<string> folders = {"Omnipotent", "VacuumFilter", "VQF", "LDCF", "Morton"};
 	string eval_name = argc >= 2 ? string(argv[1]) : get_time_str();
-	string options = " " + eval_name;
+	string options = " -name " + eval_name;
 	
 	{
 		string cmd = "";
@@ -25,8 +25,12 @@ int main(int argc, char* argv[]) {
 		int ret = system((cmd + " && make -q").c_str());
 		assert(ret == 256 || ret == 0);
 		if (ret == 256) make_updates.push_back(f);
-
 		assert(system((cmd + " && make").c_str()) == 0);
+	}
+
+	for (auto f : folders) {
+		string cmd = "";
+		cmd += "cd .. && cd " + f;
 		assert(system((cmd + " && ./test" + options).c_str()) == 0);
 	}
 	{
@@ -37,6 +41,7 @@ int main(int argc, char* argv[]) {
 			cmd += " ../log/" + eval_name + "\\ " + f + ".txt";
 		system(cmd.c_str());
 	}
+
 	for (auto f : make_updates) {
 		cerr << "[" << f << "] has updated files!" << endl;
 	}
