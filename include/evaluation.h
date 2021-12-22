@@ -79,5 +79,5 @@ public:
 };
 
 string get_time_str();
-std::map<std::string, std::string> load_config(string opt = "load_config", string config_path = "../default_config.txt");
+std::map<std::string, std::string> load_config(string config_path = "../default_config.txt");
 #define argu_int(argu) std::atoi(arguments[argu].c_str())

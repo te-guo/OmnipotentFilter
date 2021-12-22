@@ -199,18 +199,14 @@ void EvaluationBase::debug() {
 }
 
 // argv will overwrite the arguments assigned by eval_config
-std::map<std::string, std::string> load_config(string opt, string config_path) {
+std::map<std::string, std::string> load_config(string config_path) {
     std::map<std::string, std::string> arguments;
-    if (opt == "load_config") {
-        ifstream in(config_path);
-        assert(in.is_open());
-        std::string argu, value;
-        while(in >> argu >> value)
-            arguments[argu] = value;
-        in.close();
-    } else {
-        assert(false);
-    }
+    ifstream in(config_path);
+    assert(in.is_open());
+    std::string argu, value;
+    while(in >> argu >> value)
+        arguments[argu] = value;
+    in.close();
     return arguments;
 }
 void EvaluationBase::_generate_input(){
@@ -231,7 +227,7 @@ void EvaluationBase::evaluation(int argc, char* argv[], string path) {
     log_dir = path + "/";
     log_path = log_dir + arguments["name"]
         + "_" + get_filter_name()
-        + (arguments.count("round") ? "#" + arguments["round"] : "")
+        + (arguments.count("round_id") ? "#" + arguments["round_id"] : "")
         + ".txt";
     open_log();
 

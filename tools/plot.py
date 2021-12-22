@@ -1,24 +1,32 @@
 ###################
-# $ python3 plot.py [plot_type] [result_name] [rounds] [filter_name_1] [filter_name_2] [filter_name_3]
+# $ python3 plot.py [plot_type] [result_name] [filter_name_1] [filter_name_2] [filter_name_3]
 ###################
 import sys
 import re
 import matplotlib.pyplot as plt
 
+arguments = {}
+f = open("../default_config.txt", 'r')
+while True:
+    line = f.readline().split()
+    if len(line) < 2:
+        break
+    arguments[line[0]] = line[1]
+round = int(arguments["round"])
+
 n = 0
 plot_type = int(sys.argv[1])
 result_name = sys.argv[2]
-rounds = int(sys.argv[3])
 colors = ['red', 'green', 'blue', 'black', 'purple']
 names = []
 insert = []
 query = []
 remove = []
 
-for filter in sys.argv[4:]:
+for filter in sys.argv[3:]:
     n += 1
     lines = []
-    for id in range(rounds):
+    for id in range(round):
         f = open("../log/" + result_name + "_" + filter + "#" + str(id) + ".txt", 'r')
         if id == 0:
             names.append(f.readline().split()[0])

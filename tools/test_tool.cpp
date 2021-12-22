@@ -34,13 +34,12 @@ int main(int argc, char* argv[]) {
 	for (auto f : folders) for(int i = 0; i < argu_int("round"); i++){
 		string cmd = "";
 		cmd += "cd .. && cd " + f;
-		assert(system((cmd + " && ./test" + options + " -round " + std::to_string(i)).c_str()) == 0);
+		assert(system((cmd + " && ./test" + options + " -round_id " + std::to_string(i)).c_str()) == 0);
 	}
 	{
 		string cmd = "python3 plot.py";
 		cmd += " 0";
 		cmd += " " + eval_name;
-		cmd += " " + arguments["round"];
 		for (auto f : folders)
 			cmd += " " + f;
 		system(cmd.c_str());
