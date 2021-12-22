@@ -412,7 +412,7 @@ bool vqf_insert(vqf_filter * restrict filter, uint64_t hash) {
          block_md = alt_block_md;
       } else if (block_free == QUQU_BUCKETS_PER_BLOCK) {
          unlock_blocks(filter, block_index, alt_block_index);
-         fprintf(stderr, "vqf filter is full.");
+         fprintf(stderr, "vqf filter is full.\n");
          return false;
          //exit(EXIT_FAILURE);
       } else {
