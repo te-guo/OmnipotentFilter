@@ -26,7 +26,13 @@ dynamic LDCF:
 
 
 
-#### 2021/12/23
+
+
+
+
+
+
+### 2021/12/23
 
 #### result:
 
@@ -39,6 +45,10 @@ server:
 <img src="2021-12-23-server.png" alt="2021-12-23-server" style="zoom:8%;" /> 
 
 #### Issues:
+
+
+
+
 
 
 
