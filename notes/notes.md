@@ -1,13 +1,32 @@
 ## todo-list
 
-- 实现静态LDCF
 - fix load factor，绘制bpk-fpr图像
 
 
 
 ## log
 
-### 2021/12/23
+### 2021/12/31
+
+#### description:
+
+阿里云Intel机器，omnipotent filter使用SIMD加速
+
+#### result:
+
+static LDCF:
+
+<img src="2021-12-30-intel.png" alt="2021-12-30-intel" style="zoom:8%;" /> 
+
+dynamic LDCF:
+
+<img src="2021-12-29-intel.png" alt="2021-12-29-intel" style="zoom:8%;" /> 
+
+#### Issues:
+
+
+
+#### 2021/12/23
 
 #### result:
 
