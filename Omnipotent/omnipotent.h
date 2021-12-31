@@ -1,5 +1,5 @@
 #pragma once
-
+#include "immintrin.h"
 #include "hashing.h"
 #include <cstdio>
 #include <iostream>
@@ -9,6 +9,9 @@
 #define SLOT_N 8
 #define FINGERPRINT_T uint16_t
 #define SMALL_BUCKET_PRIORITY 0
+#define get_large_pos(pos, f, N) ((pos<<1)|(f&1)) ^ ((f>>1)&((N<<1)-1))
+	
+
 //#define USE_STATISTIC
 
 struct OmnipotentConfig {
@@ -33,26 +36,18 @@ public:
 		return true;
 	}
 	int query(FINGERPRINT_T f) {
-		if (f) {
-			if (a[0]==f) return 0;
-			if (a[1]==f) return 1;
-			if (a[2]==f) return 2;
-			if (a[3]==f) return 3;
-			if (a[4]==f) return 4;
-			if (a[5]==f) return 5;
-			if (a[6]==f) return 6;
-			if (a[7]==f) return 7;	
-		} else {	
-			if (!a[0] && num>=1) return 0;
-			if (!a[1] && num>=2) return 1;
-			if (!a[2] && num>=3) return 2;
-			if (!a[3] && num>=4) return 3;
-			if (!a[4] && num>=5) return 4;
-			if (!a[5] && num>=6) return 5;
-			if (!a[6] && num>=7) return 6;
-			if (!a[7] && num>=8) return 7;
-		}
-		return -1;
+		const __m128i item = _mm_set1_epi16(f);
+        __m128i fp = _mm_set_epi16(a[7], a[6],a[5],a[4],a[3],a[2],a[1],a[0]);
+        int matched = 0;
+
+        __m128i a_comp = _mm_cmpeq_epi16(item, fp);
+        matched = _mm_movemask_epi8(a_comp);
+
+        if (matched != 0)
+        {
+           return 1;
+        }
+        return -1;
 	}
 	bool remove(FINGERPRINT_T f) {
 		for (int i=0; i<num; i++)
@@ -109,10 +104,6 @@ public:
 	}
 private:
 
-	int get_large_pos(const int &pos, const FINGERPRINT_T &f) {
-		return ((pos<<1)|(f&1)) ^ ((f>>1)&((BUCKET_N<<1)-1));            //!!![MODIFIED]
-	}
-
 	bool _insert(int p1, FINGERPRINT_T f) {
 		int p2;
 		//std::cout<<"insert:"<<p1<<" "<<p2<<" "<<f<<std::endl;
@@ -124,7 +115,7 @@ private:
 				b1_cnt[b1[p1].size()]++;
 			#endif
 		} else {
-			p2 = get_large_pos(p1, f);
+			p2 = get_large_pos(p1, f,BUCKET_N);
 			if (b1[p1].size() <= b2[p2].size() + SMALL_BUCKET_PRIORITY && !b1[p1].is_full()) {
 				b1[p1].insert(f);
 				#ifdef USE_STATISTIC
@@ -179,7 +170,7 @@ private:
 				FINGERPRINT_T mnf;
 				for (int i=0; i<SLOT_N; i++) {
 					FINGERPRINT_T cf = b1[p1][i];
-					int p = get_large_pos(p1, cf);
+					int p = get_large_pos(p1, cf,BUCKET_N);
 					if (b2[p].size()<mn) {
 						mn = b2[p].size();
 						mnp = p;
@@ -203,13 +194,13 @@ private:
 	}
 
 	bool _query(int p1, FINGERPRINT_T f) {
-		int p2 = get_large_pos(p1, f);
+		int p2 = get_large_pos(p1, f,BUCKET_N);
 		if (b2[p2].query(f)!=-1) return true;
 		if (b1[p1].query(f)!=-1) return true;
 		return false;
 	}
 	bool _remove(int p1, FINGERPRINT_T f) {
-		int p2 = get_large_pos(p1, f);
+		int p2 = get_large_pos(p1, f,BUCKET_N);
 		used_slots_num--;
 		if (b2[p2].remove(f)) return true;
 		if (b1[p1].remove(f)) return true;
