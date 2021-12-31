@@ -1,14 +1,29 @@
 ## todo-list
 
-- throughput的规律振动？？
-- 实现多次测试取average performance
 - 实现静态LDCF
 - fix load factor，绘制bpk-fpr图像
-- vqf一删除就挂了？？
 
 
 
 ## log
+
+### 2021/12/23
+
+#### result:
+
+local:
+
+<img src="2021-12-23-local.png" alt="2021-12-23-local" style="zoom:8%;" /> 
+
+server:
+
+<img src="2021-12-23-server.png" alt="2021-12-23-server" style="zoom:8%;" /> 
+
+#### Issues:
+
+
+
+
 
 ### 2021/12/9
 
