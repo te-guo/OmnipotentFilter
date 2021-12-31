@@ -1,3 +1,4 @@
 log/
 test
 /*/obj/
+gmon.out

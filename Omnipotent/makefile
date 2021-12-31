@@ -1,6 +1,6 @@
 TARGETS = test
 INCLUDE_PATH = ../include
-FLAGS = -Ofast -Wall -std=c++14 -I$(INCLUDE_PATH)
+FLAGS = -O3 -Wall -std=c++14  -mavx2 -I$(INCLUDE_PATH)
 LFLAGS = $(FLAGS)
 OBJDIR = obj
 HEADERS = $(wildcard *.h) $(wildcard $(INCLUDE_PATH)/*.h)
