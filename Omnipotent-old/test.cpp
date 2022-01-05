@@ -7,13 +7,12 @@
 using namespace std;
 typedef long long ll;
 
-#define SELECTED_FILTER OmnipotentFilter
+#define SELECTED_FILTER StaticOmnipotentFilter
 class OmnipotentEvaluation : public EvaluationBase {
 	SELECTED_FILTER *F;
-	string get_filter_name() {return "Omnipotent";}
+	string get_filter_name() {return "Omnipotent-old";}
 	void init() {
-//		F = new SELECTED_FILTER (max_capacity);
-		F = new SELECTED_FILTER (35, max_capacity);
+		F = new SELECTED_FILTER (max_capacity);
 	}
 	bool insert(uint64_t key) {
 		return F->insert_key(key);

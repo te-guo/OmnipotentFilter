@@ -211,7 +211,7 @@ std::map<std::string, std::string> load_config(string config_path) {
 }
 void EvaluationBase::_generate_input(){
     max_capacity = 1 << argu_int("n");
-    if (get_filter_name()=="Omnipotent") {
+    if (get_filter_name()=="Omnipotent-old") {
         max_capacity += max_capacity / 2;
     }
     data_generator.gen_random_data(data, max_capacity, argu_int("no_query"), argu_int("no_remove"));

@@ -1,8 +1,8 @@
 ## todo-list
 
 - fix load factor，绘制bpk-fpr图像
-
-
+- 调优新写的适配于动态版本的omnipotent
+- **收集之前实验结果的log**  例如12.31的n是多大？（听说比较小）
 
 ## log
 

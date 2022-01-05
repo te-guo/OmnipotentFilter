@@ -9,7 +9,7 @@ using namespace std;
 typedef long long ll;
 
 int main(int argc, char* argv[]) {
-	vector<string> folders = {"Omnipotent", "VacuumFilter", "VQF", "LDCF", "Morton"};
+	vector<string> folders = {"Omnipotent", "VacuumFilter", "VQF", "LDCF", "Morton", "Omnipotent-old"};
 	string eval_name = argc >= 2 ? string(argv[1]) : get_time_str();
 	std::map<std::string, std::string> arguments = load_config();
 	string options = " -name " + eval_name;
