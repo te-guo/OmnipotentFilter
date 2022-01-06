@@ -38,16 +38,12 @@ public:
 		a[num++] = f;
 	}
 	int query(const uint64_t &f) {
-		const __m128i item = _mm_set1_epi16(f);
+		const __m128i item = _mm_set1_epi16(uint16_t(f));
         __m128i fp = _mm_set_epi16(a[7], a[6], a[5], a[4], a[3], a[2], a[1], a[0]);
-        int matched = 0;
         __m128i a_comp = _mm_cmpeq_epi16(item, fp);
-        matched = _mm_movemask_epi8(a_comp);
-        if (matched != 0) {
-           return 1;
-        }
-        return -1;
-	}
+        //int matched = _mm_movemask_epi8(a_comp);
+        return _mm_test_all_zeros(a_comp, a_comp) ? -1 : 0;
+    }
 	bool remove(const uint64_t &f) {
 		for (int i = 0; i < num; i++) {
 			if (a[i] == f) {
@@ -93,13 +89,12 @@ const int FRAC_K = 0;
 class OmnipotentFilter {
 private:
 	TableFractionBase *H[1<<FRAC_K], *L[1<<FRAC_K];
-	int rfl; // raw fingerprint length
+	const int rfl; // raw fingerprint length
 	bool is_dynamic;
 public:
-	OmnipotentFilter(int bits_recorded_per_key, int init_filter_size, bool auto_resize = true) {
+	OmnipotentFilter(int bits_recorded_per_key, int init_filter_size, bool auto_resize = true) : rfl(std::max(FRAC_K, bits_recorded_per_key)) {
 		int l = 0;
 		while (init_filter_size > (1<<l)) l++;
-		rfl = std::max(FRAC_K, bits_recorded_per_key);
 		is_dynamic = auto_resize;
 		int init_l = std::max(0, l - FRAC_K - 4);
 		for (int i = 0; i < (1 << FRAC_K); i++) {
@@ -116,6 +111,7 @@ public:
 		}
 	}
 private:
+	int kick_count = 0;
 	#define high_fingerprint(key, level) ((key) & ((1ull << (rfl - FRAC_K - level)) - 1))
 	#define high_index(key, level) ((key & ((1ull << (rfl - FRAC_K)) - 1)) >> (rfl - FRAC_K - level))
 	#define high_fracid(key) ((key) >> (rfl - FRAC_K))
@@ -124,63 +120,78 @@ private:
 	#define low_index(key, level) (((key) >> FRAC_K) & ((1 << level) - 1))
 	#define low_fracid(key) ((key) & ((1ull << FRAC_K) - 1))
 	#define low_fingerprint_mask(level) (((1ull << (rfl - FRAC_K - level)) - 1) << (FRAC_K + level))
-	std::pair<TableFractionBase*, BucketBase*> locate_high(uint64_t key) {
+	std::pair<int, BucketBase*> locate_high(uint64_t key) {
 		auto high_fraction = H[high_fracid(key)];
 		auto high_bucket = high_fraction->get(high_index(key, high_fraction->level));
-		return std::make_pair(high_fraction, high_bucket);
+		return std::make_pair(high_fraction->level, high_bucket);
 	}
-	std::pair<TableFractionBase*, BucketBase*> locate_low(uint64_t key) {
+	std::pair<int, BucketBase*> locate_low(uint64_t key) {
 		auto low_fraction = L[low_fracid(key)];
 		auto low_bucket = low_fraction->get(low_index(key, low_fraction->level));
-		return std::make_pair(low_fraction, low_bucket);
+		return std::make_pair(low_fraction->level, low_bucket);
 	}
 	bool _kick_high(uint64_t key, BucketBase *b, int level) {
 		uint64_t mask = key & ~high_fingerprint_mask(level);
-		for (int i = 0; i < b->size(); i++) {
+		int mn_size = SLOT_N, mni;
+		uint64_t mn_key;
+		std::pair<int, BucketBase*> mn;
+		for (int i = 0; i < SLOT_N; i++) {
 			uint64_t nkey = mask | b->get(i);
 			auto low = locate_low(nkey);
 			int low_size = low.second->size();
-			if (low_size < SLOT_N) {
-				low.second->insert(low_fingerprint(nkey, low.first->level));
-				b->replace(i, high_fingerprint(key, level));
-				return true;
+			if (low_size < mn_size) {
+				mn_size = low_size;
+				mni = i;
+				mn_key = nkey;
+				mn = low;
 			}
 		}
-		return false;
+		if (mn_size == SLOT_N) return false;
+		mn.second->insert(low_fingerprint(mn_key, mn.first));
+		b->replace(mni, high_fingerprint(key, level));
+		kick_count++;
+		return true;
 	}
 	bool _kick_low(uint64_t key, BucketBase *b, int level) {
 		uint64_t mask = key & ~low_fingerprint_mask(level);
-		for (int i = 0; i < b->size(); i++) {
+		int mn_size = SLOT_N, mni;
+		uint64_t mn_key;
+		std::pair<int, BucketBase*> mn;
+		for (int i = 0; i < SLOT_N; i++) {
 			uint64_t nkey = mask | (b->get(i) << (FRAC_K + level));
 			auto high = locate_high(nkey);
 			int high_size = high.second->size();
-			if (high_size < SLOT_N) {
-				high.second->insert(high_fingerprint(nkey, high.first->level));
-				b->replace(i, low_fingerprint(key, level));
-				return true;
+			if (high_size < mn_size) {
+				mn_size = high_size;
+				mni = i;
+				mn_key = nkey;
+				mn = high;
 			}
 		}
-		return false;
+		if (mn_size == SLOT_N) return false;
+		mn.second->insert(high_fingerprint(mn_key, mn.first));
+		b->replace(mni, low_fingerprint(key, level));
+		kick_count++;
+		return true;
 	}
 	bool _insert(uint64_t key, bool key_native) {
 		//std::cerr<<"insert:"<<key<<std::endl;
 		//std::cerr<<high_fracid(key)<<std::endl;
+		if (rand()%1000000==0) std::cerr<<"kick="<<kick_count<<std::endl;
 		if (key_native) {
 			auto high = locate_high(key);
 			int high_size = high.second->size();
-			uint64_t high_fp = high_fingerprint(key, high.first->level);
 			if (high_size < SLOT_N) {
 				//std::cerr << "high_fp = " << high_fp << std::endl;
-				high.second->insert(high_fp);
+				high.second->insert(high_fingerprint(key, high.first));
 			} else {
 				auto low = locate_low(key);
 				int low_size = low.second->size();
-				uint64_t low_fp = low_fingerprint(key, low.first->level);
 				if (low_size < SLOT_N) {
-					low.second->insert(low_fp);
+					low.second->insert(low_fingerprint(key, low.first));
 				} else {
-					if (!_kick_high(key, high.second, high.first->level)) {
-						if (!_kick_low(key, low.second, low.first->level)) {
+					if (!_kick_high(key, high.second, high.first)) {
+						if (!_kick_low(key, low.second, low.first)) {
 					 		return false;
 						}
 					}
@@ -189,18 +200,16 @@ private:
 		} else {
 			auto low = locate_low(key);
 			int low_size = low.second->size();
-			uint64_t low_fp = low_fingerprint(key, low.first->level);
 			if (low_size < SLOT_N) {
-				low.second->insert(low_fp);
+				low.second->insert(low_fingerprint(key, low.first));
 			} else {
 				auto high = locate_high(key);
 				int high_size = high.second->size();
-				uint64_t high_fp = high_fingerprint(key, high.first->level);
 				if (high_size < SLOT_N) {
-					high.second->insert(high_fp);
+					high.second->insert(high_fingerprint(key, high.first));
 				} else {
-					if (!_kick_low(key, low.second, low.first->level)) {
-						if (!_kick_high(key, high.second, high.first->level)) {
+					if (!_kick_low(key, low.second, low.first)) {
+						if (!_kick_high(key, high.second, high.first)) {
 							return false;
 						}
 					}
@@ -209,32 +218,38 @@ private:
 		}
 		return true;
 	}
-
+	int tot_query = 0, nothit_query = 0;
 	bool _query(uint64_t key, bool key_native) {
+		tot_query++;
+		if (rand()%1000000==0) std::cerr<<1.0*(tot_query-nothit_query)/tot_query<<std::endl;
 		if (key_native) {
-			auto high = locate_high(key);
-			if (high.second->query(high_fingerprint(key, high.first->level)) != -1) return true;
 			auto low = locate_low(key);
-			if (low.second->query(low_fingerprint(key, low.first->level)) != -1) return true;
+			__builtin_prefetch(low.second);
+			auto high = locate_high(key);
+			if (high.second->query(high_fingerprint(key, high.first)) != -1) return true;
+			nothit_query++;
+			if (low.second->query(low_fingerprint(key, low.first)) != -1) return true;
 		} else {
-			auto low = locate_low(key);
-			if (low.second->query(low_fingerprint(key, low.first->level)) != -1) return true;
 			auto high = locate_high(key);
-			if (high.second->query(high_fingerprint(key, high.first->level)) != -1) return true;	
+			__builtin_prefetch(high.second);
+			auto low = locate_low(key);
+			if (low.second->query(low_fingerprint(key, low.first)) != -1) return true;
+			nothit_query++;
+			if (high.second->query(high_fingerprint(key, high.first)) != -1) return true;	
 		}
 		return false;
 	}
-	bool _remove(uint64_t key, bool key_native) {
+	bool _remove(uint64_t key, bool key_native) { // must remove the keys in filter
 		if (key_native) {
 			auto high = locate_high(key);
-			if (high.second->remove(high_fingerprint(key, high.first->level))) return true;
+			if (high.second->remove(high_fingerprint(key, high.first))) return true;
 			auto low = locate_low(key);
-			if (low.second->remove(low_fingerprint(key, low.first->level))) return true;
+			if (low.second->remove(low_fingerprint(key, low.first))) return true;
 		} else {
 			auto low = locate_low(key);
-			if (low.second->remove(low_fingerprint(key, low.first->level))) return true;
+			if (low.second->remove(low_fingerprint(key, low.first))) return true;
 			auto high = locate_high(key);
-			if (high.second->remove(high_fingerprint(key, high.first->level))) return true;	
+			if (high.second->remove(high_fingerprint(key, high.first))) return true;	
 		}
 		return false;
 	}
