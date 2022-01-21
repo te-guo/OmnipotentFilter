@@ -14,7 +14,14 @@
 
 Transferred to new Ali Cloud server. Results using default config in github:
 
+$n=25$
+
 <img src="2022-01-22-server-ali2-size_25_with_remove.png" alt="2022-01-22-server-ali2-size_25_with_remove" style="zoom:8%;" /> 
+
+$n=23$
+
+<img src="2022-01-22-server-ali2-size_23_with_remove.png" alt="2022-01-22-server-ali2-size_23_with_remove" style="zoom:8%;" /> 
+
 
 ### 2022/01/06
 
