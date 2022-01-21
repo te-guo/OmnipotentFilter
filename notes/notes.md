@@ -4,8 +4,24 @@
 - 调优新写的适配于动态版本的omnipotent
 - **收集之前实验结果的log**  例如12.31的n是多大？（听说比较小）
 - 为什么LDCF变得那么快？
+- 弄清楚不同filter用的memory，弄清楚我们的trade off
 
 ## log
+
+### 2022/01/22
+
+#### result:
+
+Transferred to new Ali Cloud server. Results using default config in github:
+
+<img src="2022-01-22-server-ali2-size_25_with_remove.png" alt="2022-01-22-server-ali2-size_25_with_remove" style="zoom:8%;" /> 
+
+### 2022/01/06
+
+#### Issues:
+
+- 为什么FPR抖动？
+- 为什么CF在load factor低的时候就开始下降了？
 
 ### 2021/12/31
 
